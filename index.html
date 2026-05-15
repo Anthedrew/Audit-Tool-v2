@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1a56a0" id="meta-theme-color">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Audit Tool">
+<link rel="manifest" id="pwa-manifest">
+<link rel="apple-touch-icon" id="pwa-icon-link">
+<link rel="icon" type="image/svg+xml" id="pwa-favicon">
+<title>Audit Tool</title>
+<style>
+:root{
+  --bg:#f0f2f5;--card:#ffffff;--text:#111827;--muted:#6b7280;--border:#d1d5db;
+  --primary:#1a56a0;--primary-light:#dbeafe;--primary-text:#1e3a5f;
+  --iatf:#6d28d9;--iatf-light:#ede9fe;--iatf-text:#4c1d95;
+  --green:#15803d;--green-light:#dcfce7;--green-text:#14532d;
+  --yellow:#92400e;--yellow-light:#fef3c7;--yellow-border:#d97706;
+  --red:#b91c1c;--red-light:#fee2e2;--red-border:#dc2626;
+  --gray-light:#f3f4f6;--gray-text:#374151;
+  --shadow:0 1px 3px rgba(0,0,0,.1);
+  --tab-active-text:#1a56a0;--tab-active-bar:#1a56a0;
+  --safe-top:env(safe-area-inset-top);--safe-bot:env(safe-area-inset-bottom);
+}
+[data-theme="dark"]{
+  --bg:#0d1117;--card:#161b22;--text:#e6edf3;--muted:#8b949e;--border:#30363d;
+  --primary:#388bfd;--primary-light:#1c2d47;--primary-text:#a8d4ff;
+  --iatf:#a78bfa;--iatf-light:#2d1f4e;--iatf-text:#c4b5fd;
+  --green:#3fb950;--green-light:#1a3a27;--green-text:#7ee787;
+  --yellow:#e3b341;--yellow-light:#2d2008;--yellow-border:#e3b341;
+  --red:#f85149;--red-light:#3d1212;--red-border:#f85149;
+  --gray-light:#21262d;--gray-text:#cdd9e5;
+  --shadow:0 1px 4px rgba(0,0,0,.5);
+  --tab-active-text:#58a6ff;--tab-active-bar:#388bfd;
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme]){
+    --bg:#0d1117;--card:#161b22;--text:#e6edf3;--muted:#8b949e;--border:#30363d;
+    --primary:#388bfd;--primary-light:#1c2d47;--primary-text:#a8d4ff;
+    --iatf:#a78bfa;--iatf-light:#2d1f4e;--iatf-text:#c4b5fd;
+    --green:#3fb950;--green-light:#1a3a27;--green-text:#7ee787;
+    --yellow:#e3b341;--yellow-light:#2d2008;--yellow-border:#e3b341;
+    --red:#f85149;--red-light:#3d1212;--red-border:#f85149;
+    --gray-light:#21262d;--gray-text:#cdd9e5;
+    --shadow:0 1px 4px rgba(0,0,0,.5);
+    --tab-active-text:#58a6ff;--tab-active-bar:#388bfd;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{overscroll-behavior-y:contain}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.5;padding-bottom:120px;font-size:14px;min-height:100vh;transition:background .25s,color .25s}
+/* HEADER */
+.app-header{background:linear-gradient(135deg,#1a4f96 0%,#1a56a0 55%,#1e6fc4 100%);color:#fff;padding:calc(12px + var(--safe-top)) 16px 13px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3);display:flex;align-items:center;gap:10px;min-height:calc(56px + var(--safe-top))}
+[data-theme="dark"] .app-header{background:linear-gradient(135deg,#0f2744 0%,#163660 55%,#1a4f96 100%)}
+.back-btn{background:rgba(255,255,255,.2);border:none;color:#fff;width:36px;height:36px;border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:22px;flex-shrink:0;padding:0;font-weight:300;transition:background .15s,transform .1s}
+.back-btn.show{display:flex}
+.back-btn:active{background:rgba(255,255,255,.35);transform:scale(.92)}
+.hdr-text{flex:1;min-width:0}
+.hdr-text h1{font-size:17px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px}
+.hdr-text .sub{font-size:11px;opacity:.78;margin-top:1px}
+#current-badge{background:rgba(255,255,255,.2);border-radius:20px;padding:6px 13px;font-size:11px;white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;cursor:pointer;flex-shrink:0;border:1.5px solid rgba(255,255,255,.38);font-weight:700;color:#fff;transition:background .15s,transform .1s}
+#current-badge:active{transform:scale(.92);background:rgba(255,255,255,.32)}
+.settings-btn{background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.28);color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:18px;padding:0;transition:background .15s,transform .1s}
+.settings-btn:active{background:rgba(255,255,255,.32);transform:scale(.92)}
+/* TABS */
+.tabs{display:flex;background:var(--card);border-bottom:2px solid var(--border);overflow-x:auto;position:sticky;z-index:99;scrollbar-width:none;top:calc(56px + var(--safe-top))}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:13px 15px;font-size:13px;font-weight:600;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;margin-bottom:-2px;transition:color .15s}
+.tab.active{color:var(--tab-active-text);border-bottom-color:var(--tab-active-bar);font-weight:800}
+/* SEARCH */
+.search-sticky{background:var(--card);padding:10px 14px;border-bottom:1px solid var(--border);position:sticky;z-index:98;display:none;top:calc(56px + var(--safe-top) + 47px)}
+.search-sticky.show{display:block}
+.search-wrap{position:relative}
+.search-wrap::before{content:"\1F50D";position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.4;pointer-events:none}
+.search-sticky input{width:100%;padding:11px 14px 11px 38px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text)}
+.search-sticky input:focus{outline:none;border-color:var(--primary);background:var(--card)}
+.search-sticky input::placeholder{color:var(--muted)}
+/* SECTIONS */
+.section{display:none;padding:14px;max-width:900px;margin:0 auto;animation:fadeSlide .2s ease-out}
+.section.active{display:block}
+@keyframes fadeSlide{from{opacity:0;transform:translateX(6px)}to{opacity:1;transform:translateX(0)}}
+/* CARDS */
+.card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.card h2{color:var(--primary);font-size:15px;margin-bottom:10px;padding-left:10px;border-left:4px solid var(--primary);line-height:1.3;font-weight:700}
+.card p,.card li{font-size:13px;color:var(--gray-text);margin-bottom:5px;line-height:1.5}
+.card ul,.card ol{padding-left:18px}
+.card ol li{margin-bottom:8px}
+.refbox{background:var(--primary-light);padding:8px 12px;border-radius:7px;font-size:11.5px;margin-top:10px;border-left:3px solid var(--primary);color:var(--primary-text);font-weight:500}
+/* GUIDE */
+.step-list{list-style:none;padding:0;margin:0}
+.step-list li{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.step-list li:last-child{border-bottom:none}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-body{flex:1}
+.step-title{font-weight:700;font-size:14px;color:var(--text);margin-bottom:3px}
+.step-desc{font-size:12.5px;color:var(--muted)}
+.step-tip{font-size:11.5px;color:var(--primary-text);background:var(--primary-light);padding:5px 9px;border-radius:6px;margin-top:6px;display:block;font-weight:500}
+.trap-box{background:var(--yellow-light);border:1px solid var(--yellow-border);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.trap-q{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+.trap-a{font-size:12px;color:var(--yellow);font-weight:500}
+/* FORM */
+.form-card{background:var(--card);border-radius:14px;padding:18px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.form-card label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-top:14px;margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px}
+.form-card label:first-of-type{margin-top:4px}
+.form-card input,.form-card select,.form-card textarea{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;background:var(--bg);color:var(--text)}
+.form-card input:focus,.form-card select:focus,.form-card textarea:focus{outline:none;border-color:var(--primary);background:var(--card)}
+.form-card input::placeholder,.form-card textarea::placeholder{color:var(--muted)}
+/* FOTO nel form header */
+.photo-area{margin-top:10px}
+.photo-area-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;display:block}
+/* NORM/STATUS */
+.norm-row,.status-row{display:flex;gap:8px;margin-top:4px}
+.norm-btn,.status-btn{flex:1;padding:14px 8px;border:2px solid var(--border);border-radius:10px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;background:var(--bg);color:var(--muted);line-height:1.3;user-select:none;min-height:48px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.norm-btn:active,.status-btn:active{transform:scale(.96)}
+.norm-btn.sel-9001{border-color:var(--primary);background:var(--primary-light);color:var(--primary-text);font-weight:800}
+.norm-btn.sel-iatf{border-color:var(--iatf);background:var(--iatf-light);color:var(--iatf-text);font-weight:800}
+.st-inprogress.active{border-color:var(--yellow-border);background:var(--yellow-light);color:var(--yellow);font-weight:800}
+.st-closed.active{border-color:var(--green);background:var(--green-light);color:var(--green-text);font-weight:800}
+.st-followup.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary-text);font-weight:800}
+/* CHECKLIST */
+.phase{background:var(--card);border-radius:14px;margin-bottom:10px;box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--border)}
+.phase-hdr{padding:14px 16px;font-weight:700;font-size:13.5px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;color:#fff;min-height:52px;transition:filter .15s}
+.phase-hdr.iso{background:linear-gradient(135deg,#1a56a0,#2563eb)}
+.phase-hdr.iatf-hdr{background:linear-gradient(135deg,#5b21b6,#7c3aed)}
+.phase-hdr:active{filter:brightness(.88)}
+.phase-hdr .chev{transition:transform .25s;display:inline-block;flex-shrink:0}
+.phase-hdr.open .chev{transform:rotate(180deg)}
+.ph-meta{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px}
+.ph-ct{font-size:11px;background:rgba(255,255,255,.28);padding:4px 9px;border-radius:10px;font-weight:600;white-space:nowrap}
+.phase-title-wrap{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.phase-icon{font-size:17px;flex-shrink:0}
+.phase-title-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phase-body{display:none}
+.phase-body.open{display:block;animation:slideDown .18s ease-out}
+@keyframes slideDown{from{opacity:0}to{opacity:1}}
+.question{padding:14px 16px;border-bottom:1px solid var(--border);transition:background .3s}
+.question:last-child{border-bottom:none}
+.question.answered{background:rgba(21,128,61,.04)}
+[data-theme="dark"] .question.answered{background:rgba(63,185,80,.06)}
+.question.has-photo{border-left:3px solid var(--primary)}
+.q-text{font-size:14px;color:var(--text);margin-bottom:3px;font-weight:600;line-height:1.4}
+.q-ref{font-size:11px;color:var(--muted);margin-bottom:7px;font-style:italic}
+.q-hint{font-size:12px;padding:7px 11px;border-radius:7px;margin-bottom:10px;line-height:1.4;font-weight:500;border-left:3px solid}
+.q-hint.iso{color:var(--primary-text);background:var(--primary-light);border-color:var(--primary)}
+.q-hint.iatf-hint{color:var(--iatf-text);background:var(--iatf-light);border-color:var(--iatf)}
+/* RATING */
+.rating{display:flex;gap:5px;margin-bottom:10px}
+.rating label{flex:1;padding:11px 3px;text-align:center;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;background:var(--bg);color:var(--muted);user-select:none;min-height:44px;display:flex;align-items:center;justify-content:center;transition:all .12s;line-height:1.2}
+.rating label:active{transform:scale(.93)}
+.rating input[type=radio]{display:none}
+.rating label:has(input:checked){border-width:2.5px;font-weight:800}
+.rating label:has(input[value="C"]:checked){background:var(--green-light);border-color:var(--green);color:var(--green-text)}
+.rating label:has(input[value="NC-M"]:checked){background:var(--yellow-light);border-color:var(--yellow-border);color:var(--yellow)}
+.rating label:has(input[value="NC-G"]:checked){background:var(--red-light);border-color:var(--red-border);color:var(--red)}
+.rating label:has(input[value="NA"]:checked){background:var(--gray-light);border-color:var(--muted);color:var(--gray-text)}
+.notes{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;min-height:50px;background:var(--bg);color:var(--text)}
+.notes:focus{outline:none;border-color:var(--primary);background:var(--card)}
+.notes::placeholder{color:var(--muted)}
+/* FOTO WIDGET */
+.photo-widget{margin-top:8px}
+.photo-thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.photo-thumb-wrap{position:relative;width:72px;height:72px;flex-shrink:0}
+.photo-thumb{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;display:block;transition:transform .1s}
+.photo-thumb:active{transform:scale(.94)}
+.photo-del{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.3);line-height:1}
+.photo-add-btn{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1.5px dashed var(--border);border-radius:8px;background:var(--bg);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;transition:border-color .15s,color .15s;width:100%}
+.photo-add-btn:active{opacity:.7}
+.photo-add-btn.disabled{opacity:.4;pointer-events:none}
+.photo-add-btn:hover{border-color:var(--primary);color:var(--primary)}
+.photo-input{display:none}
+/* LIGHTBOX */
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:300;align-items:center;justify-content:center;flex-direction:column}
+.lightbox.open{display:flex;animation:fadeIn .2s}
+.lightbox img{max-width:96vw;max-height:82vh;border-radius:10px;object-fit:contain}
+.lightbox-close{position:absolute;top:calc(16px + var(--safe-top));right:16px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lightbox-caption{color:rgba(255,255,255,.7);font-size:12px;margin-top:10px;text-align:center;max-width:90vw}
+/* CL BANNER */
+.cl-banner{border-radius:10px;padding:11px 14px;margin-bottom:8px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:pointer}
+.cl-banner.iso{background:var(--primary-light);color:var(--primary-text);border:1px solid var(--primary)}
+.cl-banner.iatf-banner{background:var(--iatf-light);color:var(--iatf-text);border:1px solid var(--iatf)}
+.pct-badge{margin-left:auto;font-size:11.5px;background:rgba(0,0,0,.12);padding:4px 10px;border-radius:10px;font-weight:700}
+[data-theme="dark"] .pct-badge{background:rgba(255,255,255,.2)}
+/* MINIMAP */
+.phase-minimap{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;padding:9px 12px;background:var(--card);border-radius:10px;border:1px solid var(--border);box-shadow:var(--shadow);align-items:center}
+.mm-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-right:2px;white-space:nowrap}
+.mm-dot{position:relative;width:30px;height:30px;border-radius:7px;border:none;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s;flex-shrink:0;background:var(--gray-light);color:var(--muted)}
+.mm-dot:active{transform:scale(.85)}
+.mm-dot.has-nc-g{background:var(--red-light);color:var(--red);box-shadow:0 0 0 1.5px var(--red-border)}
+.mm-dot.has-nc-m{background:var(--yellow-light);color:var(--yellow);box-shadow:0 0 0 1.5px var(--yellow-border)}
+.mm-dot.all-done{background:var(--green-light);color:var(--green-text);box-shadow:0 0 0 1.5px var(--green)}
+.mm-dot.has-photo-badge::after{content:"\1F4F7";position:absolute;top:-5px;right:-5px;font-size:9px;background:var(--card);border-radius:4px;line-height:1;padding:1px}
+.mm-missing{position:absolute;top:-5px;left:-5px;width:14px;height:14px;border-radius:50%;background:var(--red);color:#fff;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1}
+/* JUMP BTN */
+.jump-unanswered{display:flex;align-items:center;gap:7px;margin-bottom:10px;padding:9px 13px;background:var(--primary-light);border:1.5px solid var(--primary);border-radius:9px;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--primary-text);width:100%;transition:opacity .15s;text-align:left}
+.jump-unanswered:active{opacity:.72}
+.jump-unanswered.hidden{display:none}
+/* REPORT */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.stat{padding:12px 4px;border-radius:10px;text-align:center;cursor:pointer;border:1px solid transparent;transition:transform .12s}
+.stat:active{transform:scale(.93)}
+.stat .n{font-size:26px;font-weight:800;display:block;line-height:1}
+.stat .l{font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-top:4px;display:block;font-weight:700}
+.stat.c{background:var(--green-light);color:var(--green-text);border-color:var(--green)}
+.stat.m{background:var(--yellow-light);color:var(--yellow);border-color:var(--yellow-border)}
+.stat.g{background:var(--red-light);color:var(--red);border-color:var(--red-border)}
+.stat.na{background:var(--gray-light);color:var(--gray-text);border-color:var(--border)}
+.progress-bar{height:8px;background:var(--gray-light);border-radius:4px;margin:10px 0 6px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),#60a5fa);border-radius:4px;transition:width .4s}
+.pct-txt{font-size:12.5px;color:var(--muted);text-align:center;margin-bottom:8px;font-weight:500}
+.todo-note{background:var(--yellow-light);border:1px solid var(--yellow-border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--yellow);margin-bottom:10px;display:none;font-weight:600}
+.nc-item{border-radius:10px;padding:12px 14px;margin-bottom:8px;border:1px solid transparent}
+.nc-item.maj{background:var(--red-light);border-color:var(--red-border);border-left-width:4px}
+.nc-item.min{background:var(--yellow-light);border-color:var(--yellow-border);border-left-width:4px}
+.nc-type{font-size:12px;font-weight:700;margin-bottom:4px}
+.nc-q{font-size:13.5px;color:var(--text);line-height:1.4;font-weight:500}
+.nc-ref{font-size:11px;color:var(--muted);margin-top:3px}
+.nc-note{font-size:12px;color:var(--text);margin-top:6px;background:rgba(0,0,0,.06);padding:6px 9px;border-radius:6px}
+[data-theme="dark"] .nc-note{background:rgba(255,255,255,.1)}
+.nc-photos{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.nc-photo-thumb{width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer}
+.nc-goto{display:inline-block;margin-top:8px;background:var(--primary);color:#fff;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;border:none;cursor:pointer}
+/* STORAGE */
+.storage-info{background:var(--primary-light);border:1px solid var(--primary);border-radius:10px;padding:11px 14px;font-size:12.5px;color:var(--primary-text);margin-bottom:12px;font-weight:500}
+.storage-info.err{background:var(--red-light);border-color:var(--red-border);color:var(--red)}
+/* ARCHIVE KPI */
+.arch-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.arch-kpi-cell{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:11px 6px;text-align:center;box-shadow:var(--shadow)}
+.arch-kpi-cell .kn{font-size:21px;font-weight:800;display:block;line-height:1.1}
+.arch-kpi-cell .kl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-top:3px;display:block}
+/* ARCHIVE ITEMS */
+.arch-item{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);border:2px solid var(--border);transition:transform .1s}
+.arch-item:active{transform:scale(.985)}
+.arch-item.cur{border-color:var(--green);background:var(--green-light)}
+.ai-title{font-weight:700;font-size:14.5px;margin-bottom:3px}
+.ai-title.iso{color:var(--primary)}
+.ai-title.iatf-t{color:var(--iatf)}
+.ai-sub{font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.ai-meta{font-size:11.5px;color:var(--muted);margin-bottom:7px}
+.ai-prog{height:4px;background:var(--border);border-radius:2px;margin-bottom:8px;overflow:hidden}
+.ai-pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.pill{padding:3px 10px;border-radius:11px;font-size:11px;font-weight:700}
+.pill.c{background:var(--green-light);color:var(--green-text)}
+.pill.m{background:var(--yellow-light);color:var(--yellow)}
+.pill.g{background:var(--red-light);color:var(--red)}
+.pill.na{background:var(--gray-light);color:var(--gray-text)}
+.pill.pct{background:var(--primary-light);color:var(--primary-text)}
+.pill.todo{background:var(--yellow-light);color:var(--yellow);border:1px solid var(--yellow-border)}
+.pill.norm{background:var(--iatf-light);color:var(--iatf-text)}
+.pill.photo{background:var(--primary-light);color:var(--primary-text)}
+.ai-acts{display:flex;gap:6px;flex-wrap:wrap}
+.bx{padding:8px 14px;border:none;border-radius:7px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;min-height:36px;transition:transform .1s}
+.bx:active{transform:scale(.92)}
+.bx-open{background:var(--primary);color:#fff}
+.bx-txt{background:var(--primary-light);color:var(--primary-text)}
+.bx-csv{background:var(--green-light);color:var(--green-text)}
+.bx-json{background:var(--iatf-light);color:var(--iatf-text)}
+.bx-pdf{background:var(--yellow-light);color:var(--yellow)}
+.bx-del{background:var(--red-light);color:var(--red)}
+.empty{text-align:center;padding:50px 16px;color:var(--muted);font-size:14.5px;line-height:1.7}
+/* ACTIONS */
+.actions{position:fixed;bottom:0;left:0;right:0;background:var(--card);padding:10px 12px calc(10px + var(--safe-bot));box-shadow:0 -2px 14px rgba(0,0,0,.14);display:flex;gap:7px;z-index:101;border-top:1px solid var(--border)}
+.btn{padding:14px 6px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex:1;line-height:1;min-height:48px;transition:transform .1s}
+.btn:active{transform:scale(.94)}
+.btn-blue{background:var(--primary);color:#fff}
+.btn-green{background:var(--green-light);color:var(--green-text)}
+.btn-gray{background:var(--gray-light);color:var(--gray-text)}
+.btn-red{background:var(--red-light);color:var(--red)}
+/* FAB */
+.fab{position:fixed;bottom:calc(80px + var(--safe-bot));right:16px;width:58px;height:58px;border-radius:50%;background:var(--primary);color:#fff;border:none;font-size:30px;font-weight:300;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.35);z-index:99;display:none;align-items:center;justify-content:center}
+.fab.show{display:flex;animation:fabIn .3s ease-out}
+.fab:active{transform:scale(.88)}
+@keyframes fabIn{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:200;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.overlay.open{display:flex}
+.modal{background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px calc(20px + var(--safe-bot));width:100%;max-width:600px;max-height:88vh;overflow-y:auto;animation:slideUp .25s ease-out;position:relative;border-top:1px solid var(--border)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px}
+.modal h3{font-size:17px;color:var(--primary);margin-bottom:14px;font-weight:700;padding-right:30px}
+.modal-close-x{position:absolute;top:14px;right:14px;width:32px;height:32px;border:none;background:var(--gray-light);border-radius:50%;font-size:20px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal p{font-size:13.5px;color:var(--muted);margin-bottom:12px;line-height:1.5}
+.mbtn{width:100%;padding:15px 16px;margin-bottom:8px;border:none;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;text-align:left;line-height:1.4;min-height:54px;background:var(--gray-light);color:var(--text);transition:opacity .15s}
+.mbtn:active{opacity:.72}
+.mbtn small{display:block;font-weight:400;font-size:12px;opacity:.75;margin-top:3px}
+.mclose{width:100%;padding:14px;border:none;border-radius:11px;font-size:14.5px;color:var(--gray-text);background:var(--gray-light);cursor:pointer;margin-top:4px;font-weight:700}
+/* SETTINGS */
+.settings-section{margin-bottom:22px}
+.settings-section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.seg-control{display:flex;background:var(--gray-light);border-radius:12px;padding:3px;gap:3px}
+.seg-btn{flex:1;padding:10px 4px;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--muted);transition:all .18s;text-align:center;line-height:1.3}
+.seg-btn.active{background:var(--card);color:var(--text);box-shadow:0 1px 5px rgba(0,0,0,.18);font-weight:800}
+.seg-btn:active{transform:scale(.94)}
+.settings-info{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6;padding:9px 11px;background:var(--gray-light);border-radius:8px;border:1px solid var(--border)}
+.lang-row{display:flex;gap:8px}
+.lang-btn{flex:1;padding:14px 8px;border:2px solid var(--border);border-radius:10px;font-size:14px;font-weight:700;text-align:center;cursor:pointer;background:var(--bg);color:var(--muted)}
+.lang-btn.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary-text)}
+.lang-btn:active{transform:scale(.96)}
+.time-row{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.time-row input[type=time]{flex:1;padding:11px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;background:var(--bg);color:var(--text)}
+.time-row input[type=time]:focus{outline:none;border-color:var(--primary)}
+.time-label{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+.theme-indicator{display:flex;align-items:center;gap:6px;background:var(--primary-light);color:var(--primary-text);font-size:12px;font-weight:700;padding:7px 11px;border-radius:8px;margin-top:8px;border:1px solid var(--primary)}
+.settings-about{background:var(--gray-light);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.7;border:1px solid var(--border)}
+.settings-about b{color:var(--text)}
+/* TOAST + ANIMATIONS */
+#_toast{position:fixed;bottom:140px;left:50%;transform:translateX(-50%);background:rgba(10,15,30,.94);color:#fff;padding:12px 24px;border-radius:24px;font-size:14px;z-index:500;pointer-events:none;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.45);transition:opacity .3s;max-width:90vw;overflow:hidden;text-overflow:ellipsis;opacity:0;font-weight:600}
+@keyframes ncShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.nc-shake{animation:ncShake .35s ease-out}
+@keyframes flashGreen{0%{background:var(--green-light)}100%{background:transparent}}
+.flash-answered{animation:flashGreen .5s ease-out}
+#print-area{display:none}
+@media print{.app-header,.tabs,.actions,.overlay,.search-sticky,.fab,.lightbox{display:none!important}body{background:#fff!important;padding:0!important;color:#000!important}.section{display:none!important}}
+</style>
+</head><body>
+<div class="app-header">
+  <button class="back-btn" id="back-btn">&#x2039;</button>
+  <div class="hdr-text">
+    <h1>&#x1F4CB; Audit Tool</h1>
+    <div class="sub" id="hdr-sub">ISO 9001:2015 / IATF 16949</div>
+  </div>
+  <div id="current-badge" onclick="goTab('header')">Nuovo audit</div>
+  <button class="settings-btn" onclick="openSettings()">&#x2699;&#xFE0F;</button>
+</div>
+<div class="tabs">
+  <button class="tab active" data-tab="archive" data-i18n-tab="archive"></button>
+  <button class="tab" data-tab="guide" data-i18n-tab="guide"></button>
+  <button class="tab" data-tab="header" data-i18n-tab="header"></button>
+  <button class="tab" data-tab="checklist" data-i18n-tab="checklist"></button>
+  <button class="tab" data-tab="report" data-i18n-tab="report"></button>
+</div>
+<div class="search-sticky" id="search-sticky">
+  <div class="search-wrap"><input type="text" id="search-input" data-i18n-ph="searchPlaceholder"></div>
+</div>
+
+<!-- ARCHIVE -->
+<div class="section active" id="archive">
+  <div id="storage-info" class="storage-info">...</div>
+  <div id="arch-kpi" class="arch-kpi" style="display:none">
+    <div class="arch-kpi-cell"><span class="kn" id="kpi-tot">0</span><span class="kl">Audit</span></div>
+    <div class="arch-kpi-cell"><span class="kn" id="kpi-nc" style="color:var(--red)">0</span><span class="kl">NC totali</span></div>
+    <div class="arch-kpi-cell"><span class="kn" id="kpi-pct" style="color:var(--green)">0%</span><span class="kl">Media %</span></div>
+  </div>
+  <div id="archive-list"><div class="empty">&#x1F4C2;...</div></div>
+</div>
+
+<!-- GUIDE -->
+<div class="section" id="guide">
+  <div class="card"><h2 data-i18n="guideTitle"></h2><p data-i18n="guideDesc"></p><div class="refbox">&#x1F4D8; ISO 19011:2018 + ISO 9001:2015 cl. 8.5 / IATF 16949 cl. 8.5</div></div>
+  <div class="card">
+    <h2 data-i18n="guideRouteTitle"></h2>
+    <ol class="step-list">
+      <li><div class="step-num">1</div><div class="step-body"><div class="step-title">&#x1F4E6; <span data-i18n="step1t"></span></div><div class="step-desc" data-i18n="step1d"></div><span class="step-tip">&#x1F4A1; <span data-i18n="step1h"></span></span></div></li>
+      <li><div class="step-num">2</div><div class="step-body"><div class="step-title">&#x1F4CB; <span data-i18n="step2t"></span></div><div class="step-desc" data-i18n="step2d"></div><span class="step-tip">&#x1F4A1; <span data-i18n="step2h"></span></span></div></li>
+      <li><div class="step-num">3</div><div class="step-body"><div class="step-title">&#x2699; <span data-i18n="step3t"></span></div><div class="step-desc" data-i18n="step3d"></div><span class="step-tip">&#x1F4A1; <span data-i18n="step3h"></span></span></div></li>
+      <li><div class="step-num">4</div><div class="step-body"><div class="step-title">&#x1F3ED; <span data-i18n="step4t"></span></div><div class="step-desc" data-i18n="step4d"></div><span class="step-tip">&#x1F4A1; <span data-i18n="step4h"></span></span></div></li>
+      <li><div class="step-num">5</div><div class="step-body"><div class="step-title">&#x1F52C; <span data-i18n="step5t"></span></div><div class="step-desc" data-i18n="step5d"></div><span class="step-tip">&#x1F4A1; <span data-i18n="step5h"></span></span></div></li>
+      <li><div class="step-num">6</div><div class="step-body"><div class="step-title">&#x1F527; <span data-i18n="step6t"></span></div><div class="step-desc" data-i18n="step6d"></div><span class="step-tip">&#x1F4A1; <span data-i18n="step6h"></span></span></div></li>
+      <li><div class="step-num">7</div><div class="step-body"><div class="step-title">&#x1F6AB; <span data-i18n="step7t"></span></div><div class="step-desc" data-i18n="step7d"></div><span class="step-tip">&#x1F4A1; <span data-i18n="step7h"></span></span></div></li>
+      <li><div class="step-num">8</div><div class="step-body"><div class="step-title">&#x1F4E4; <span data-i18n="step8t"></span></div><div class="step-desc" data-i18n="step8d"></div><span class="step-tip">&#x1F4A1; <span data-i18n="step8h"></span></span></div></li>
+      <li><div class="step-num">9</div><div class="step-body"><div class="step-title">&#x1F4CA; <span data-i18n="step9t"></span></div><div class="step-desc" data-i18n="step9d"></div><span class="step-tip">&#x1F4A1; <span data-i18n="step9h"></span></span></div></li>
+    </ol>
+  </div>
+  <div class="card"><h2 data-i18n="guide6M"></h2><ul><li><b>Man</b> - <span data-i18n="m1"></span></li><li><b>Machine</b> - <span data-i18n="m2"></span></li><li><b>Material</b> - <span data-i18n="m3"></span></li><li><b>Method</b> - <span data-i18n="m4"></span></li><li><b>Measurement</b> - <span data-i18n="m5"></span></li><li><b>Milieu</b> - <span data-i18n="m6"></span></li></ul></div>
+  <div class="card"><h2 data-i18n="guideClass"></h2><ul><li><b style="color:var(--red)" data-i18n="cMaj"></b></li><li><b style="color:var(--yellow)" data-i18n="cMin"></b></li><li><b data-i18n="cObs"></b></li><li><b data-i18n="cOpp"></b></li></ul></div>
+  <div class="card"><h2>ISO 9001 vs IATF 16949</h2><ul><li><b data-i18n="iatfAdd"></b></li><li><b data-i18n="iatfSc"></b></li><li><b data-i18n="iatfTrace"></b></li><li><b data-i18n="iatfNc"></b></li></ul></div>
+  <div class="card"><h2 data-i18n="guideBp"></h2><ul><li><b data-i18n="bp1"></b></li><li><b data-i18n="bp2"></b></li><li><b data-i18n="bp3"></b></li><li><b data-i18n="bp4"></b></li></ul></div>
+  <div class="card">
+    <h2 data-i18n="guideTrap"></h2>
+    <div class="trap-box"><div class="trap-q" data-i18n="trap1q"></div><div class="trap-a" data-i18n="trap1a"></div></div>
+    <div class="trap-box"><div class="trap-q" data-i18n="trap2q"></div><div class="trap-a" data-i18n="trap2a"></div></div>
+    <div class="trap-box"><div class="trap-q" data-i18n="trap3q"></div><div class="trap-a" data-i18n="trap3a"></div></div>
+    <div class="trap-box"><div class="trap-q" data-i18n="trap4q"></div><div class="trap-a" data-i18n="trap4a"></div></div>
+    <div class="trap-box"><div class="trap-q" data-i18n="trap5q"></div><div class="trap-a" data-i18n="trap5a"></div></div>
+  </div>
+</div>
+
+<!-- HEADER / DATI -->
+<div class="section" id="header">
+  <div class="form-card">
+    <label data-i18n="labelNorm"></label>
+    <div class="norm-row">
+      <div class="norm-btn sel-9001" id="nb-9001" onclick="setNorm('ISO9001')">&#x1F535; ISO 9001</div>
+      <div class="norm-btn" id="nb-iatf" onclick="setNorm('IATF16949')">&#x1F7E3; IATF 16949</div>
+    </div>
+    <label data-i18n="labelCode"></label><input type="text" id="h-code" data-i18n-ph="phCode">
+    <label data-i18n="labelDate"></label><input type="date" id="h-date">
+    <label data-i18n="labelAuditor"></label><input type="text" id="h-auditor" data-i18n-ph="phAuditor">
+    <label data-i18n="labelAuditee"></label><input type="text" id="h-auditee">
+    <label data-i18n="labelLine"></label><input type="text" id="h-line">
+    <label data-i18n="labelProduct"></label><input type="text" id="h-product">
+    <label data-i18n="labelScope"></label><textarea id="h-scope" rows="2" data-i18n-ph="phScope"></textarea>
+    <label data-i18n="labelDocs"></label><textarea id="h-docs" rows="2" data-i18n-ph="phDocs"></textarea>
+    <div class="photo-area">
+      <span class="photo-area-label" data-i18n="labelHeaderPhoto"></span>
+      <div class="photo-thumbs" id="header-photo-thumbs"></div>
+      <button class="photo-add-btn" id="header-photo-add-btn" onclick="triggerPhotoInput('header','header-photo-input')">&#x1F4F7; <span data-i18n="addPhoto"></span></button>
+      <input type="file" accept="image/*" capture="environment" class="photo-input" id="header-photo-input" multiple>
+    </div>
+    <label data-i18n="labelStatus"></label>
+    <div class="status-row">
+      <div class="status-btn st-inprogress active" id="sb-inp" onclick="setStatus('in-progress')" data-i18n="stInProgress"></div>
+      <div class="status-btn st-closed" id="sb-clo" onclick="setStatus('closed')" data-i18n="stClosed"></div>
+      <div class="status-btn st-followup" id="sb-fol" onclick="setStatus('follow-up')" data-i18n="stFollowup"></div>
+    </div>
+    <div style="margin-top:18px"><button class="btn btn-blue" style="width:100%;padding:15px;font-size:15px" onclick="saveCurrentToArchive()" data-i18n="btnSave"></button></div>
+    <p style="font-size:11.5px;color:var(--muted);text-align:center;margin-top:10px" data-i18n="autoSaveNote"></p>
+  </div>
+</div>
+
+<!-- CHECKLIST -->
+<div class="section" id="checklist">
+  <div id="cl-banner" class="cl-banner iso" onclick="scrollToTopChecklist()">
+    <span id="cl-banner-text">&#x1F535; ISO 9001:2015</span>
+    <span class="pct-badge" id="cl-pct-badge">0 / 0 - 0%</span>
+  </div>
+  <div class="phase-minimap" id="phase-minimap"><span class="mm-label">&#x1F5FA;</span></div>
+  <button class="jump-unanswered hidden" id="jump-unanswered" onclick="jumpToFirstUnanswered()">&#x27A1; <span id="jump-unanswered-text">Prima senza risposta</span></button>
+  <div id="checklist-container"></div>
+</div>
+
+<!-- REPORT -->
+<div class="section" id="report">
+  <div class="card">
+    <h2 data-i18n="reportSummary"></h2>
+    <div class="stat-grid">
+      <div class="stat c" onclick="scrollToPhaseByEsito('C')"><span class="n" id="cnt-c">0</span><span class="l" data-i18n="statC"></span></div>
+      <div class="stat m" onclick="scrollToPhaseByEsito('NC-M')"><span class="n" id="cnt-m">0</span><span class="l" data-i18n="statM"></span></div>
+      <div class="stat g" onclick="scrollToPhaseByEsito('NC-G')"><span class="n" id="cnt-g">0</span><span class="l" data-i18n="statG"></span></div>
+      <div class="stat na" onclick="scrollToPhaseByEsito('NA')"><span class="n" id="cnt-na">0</span><span class="l" data-i18n="statNA"></span></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="pct-txt" id="pct-txt">0 / 0 (0%)</div>
+    <div class="todo-note" id="todo-note">&#x26A0; <span data-i18n="todoNote"></span> <span id="todo-count">0</span> <span data-i18n="todoNote2"></span></div>
+  </div>
+  <div class="card"><h2 data-i18n="reportNc"></h2><div id="nc-list"><p style="color:var(--muted);font-size:13px" data-i18n="noNc"></p></div></div>
+  <div class="form-card">
+    <label data-i18n="labelConclusion"></label><textarea id="r-conclusion" rows="4" data-i18n-ph="phConclusion"></textarea>
+    <label data-i18n="labelFollowup"></label><input type="date" id="r-followup">
+    <div class="photo-area" style="margin-top:14px">
+      <span class="photo-area-label" data-i18n="labelReportPhoto"></span>
+      <div class="photo-thumbs" id="report-photo-thumbs"></div>
+      <button class="photo-add-btn" id="report-photo-add-btn" onclick="triggerPhotoInput('report','report-photo-input')">&#x1F4F7; <span data-i18n="addPhoto"></span></button>
+      <input type="file" accept="image/*" capture="environment" class="photo-input" id="report-photo-input" multiple>
+    </div>
+  </div>
+</div>
+
+<div id="print-area"></div>
+<button class="fab" id="fab-new" onclick="newAudit()">+</button>
+<div class="actions">
+  <button class="btn btn-blue" onclick="openExportModal()" data-i18n="btnExport"></button>
+  <button class="btn btn-gray" onclick="printAudit()" data-i18n="btnReport"></button>
+  <button class="btn btn-green" onclick="saveCurrentToArchive()" data-i18n="btnArchive"></button>
+  <button class="btn btn-red" style="flex:.6" onclick="resetCurrent()">&#x1F5D1;</button>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">&#x2715;</button>
+  <img id="lightbox-img" src="" alt="">
+  <div class="lightbox-caption" id="lightbox-caption"></div>
+</div>
+
+<!-- Export Modal -->
+<div class="overlay" id="modal-export">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <button class="modal-close-x" onclick="closeModal('modal-export')">&times;</button>
+    <h3 data-i18n="exportTitle"></h3>
+    <button class="mbtn" style="background:var(--primary-light);color:var(--primary-text)" onclick="doExportTXT()" data-i18n="expTxt"></button>
+    <button class="mbtn" style="background:var(--green-light);color:var(--green-text)" onclick="doExportCSV()" data-i18n="expCsv"></button>
+    <button class="mbtn" style="background:var(--yellow-light);color:var(--yellow)" onclick="doExportJSON()" data-i18n="expJson"></button>
+    <button class="mbtn" style="background:var(--iatf-light);color:var(--iatf-text)" onclick="doExportAllJSON()" data-i18n="expAllJson"></button>
+    <button class="mbtn" style="background:var(--green-light);color:var(--green-text)" onclick="doExportAllCSV()" data-i18n="expAllCsv"></button>
+    <button class="mbtn" onclick="openImportFromExport()" data-i18n="expImport"></button>
+    <button class="mclose" onclick="closeModal('modal-export')" data-i18n="btnCancel"></button>
+  </div>
+</div>
+<!-- Import Modal -->
+<div class="overlay" id="modal-import">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <button class="modal-close-x" onclick="closeModal('modal-import')">&times;</button>
+    <h3 data-i18n="importTitle"></h3>
+    <p data-i18n="importDesc"></p>
+    <input type="file" accept=".json,application/json" id="import-file" style="width:100%;padding:12px;border:1.5px dashed var(--border);border-radius:10px;font-size:13.5px;background:var(--bg);color:var(--text)">
+    <button class="mbtn" style="background:var(--primary);color:#fff;margin-top:14px" onclick="doImport()" data-i18n="btnImport"></button>
+    <button class="mclose" onclick="closeModal('modal-import')" data-i18n="btnCancel"></button>
+  </div>
+</div>
+<!-- Settings Modal -->
+<div class="overlay" id="modal-settings">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <button class="modal-close-x" onclick="closeModal('modal-settings')">&times;</button>
+    <h3 data-i18n="settingsTitle"></h3>
+    <div class="settings-section">
+      <div class="settings-section-title" data-i18n="settingsTheme"></div>
+      <div class="seg-control">
+        <button class="seg-btn" id="seg-auto" onclick="setTheme('auto')" data-i18n="themeAuto"></button>
+        <button class="seg-btn" id="seg-light" onclick="setTheme('light')" data-i18n="themeLight"></button>
+        <button class="seg-btn" id="seg-dark" onclick="setTheme('dark')" data-i18n="themeDark"></button>
+      </div>
+      <div class="theme-indicator" id="theme-indicator"></div>
+      <div class="settings-info" data-i18n="themeNote"></div>
+    </div>
+    <div class="settings-section" id="time-settings-section">
+      <div class="settings-section-title" data-i18n="settingsTimeRange"></div>
+      <div class="time-row">
+        <span class="time-label" data-i18n="timeSunrise"></span>
+        <input type="time" id="time-dawn" value="07:00">
+        <span class="time-label" data-i18n="timeSunset"></span>
+        <input type="time" id="time-dusk" value="20:00">
+      </div>
+      <div class="settings-info" data-i18n="timeNote"></div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title" data-i18n="settingsLang"></div>
+      <div class="lang-row">
+        <div class="lang-btn" id="lb-it" onclick="setLang('it')">&#x1F1EE;&#x1F1F9; Italiano</div>
+        <div class="lang-btn" id="lb-en" onclick="setLang('en')">&#x1F1EC;&#x1F1E7; English</div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title" data-i18n="settingsDefault"></div>
+      <div class="seg-control">
+        <button class="seg-btn" id="seg-def-9001" onclick="setDefaultNorm('ISO9001')">&#x1F535; ISO 9001</button>
+        <button class="seg-btn" id="seg-def-iatf" onclick="setDefaultNorm('IATF16949')">&#x1F7E3; IATF 16949</button>
+      </div>
+      <div class="settings-info" data-i18n="defaultNormNote"></div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title" data-i18n="settingsAbout"></div>
+      <div class="settings-about"><b>Audit Tool</b> v6.0 &mdash; ISO 9001:2015 / IATF 16949:2016<br><span data-i18n="aboutDesc"></span></div>
+    </div>
+    <button class="mclose" onclick="closeModal('modal-settings')" data-i18n="btnClose"></button>
+  </div>
+</div>
+<div id="_toast"></div><script>
+'use strict';
+var STRINGS={
+it:{
+  archive:'&#x1F5C2; Archivio',guide:'&#x1F4D6; Guida',header:'&#x1F4DD; Dati',checklist:'&#x2705; Checklist',report:'&#x1F4CA; Report',
+  searchPlaceholder:'Cerca codice, linea, prodotto, auditor...',
+  guideTitle:"Cos'e' un audit di processo",
+  guideDesc:"Verifica sistematica per stabilire se le attivita' produttive sono conformi ai requisiti pianificati e se tali requisiti sono attuati efficacemente.",
+  guideRouteTitle:'&#x1F5FA; Percorso consigliato',
+  step1t:'Magazzino MP / Incoming',step1d:"Identificazione lotti, FIFO, etichettature, tracciabilita'.",step1h:'"Da quanto e\' qui questo lotto?"',
+  step2t:"Ufficio qualita'",step2d:'Control Plan, FMEA, istruzioni: revisione aggiornata?',step2h:'Versione ufficiale prima della linea.',
+  step3t:'Avvio linea',step3d:'Setup, primo pezzo, first-off, parametri impostati.',step3h:'Cambio produzione = momento critico.',
+  step4t:'Linea produttiva',step4d:'1-2 cicli completi. Confronta visto vs istruzione.',step4h:'Stai zitto e osserva 3-5 minuti.',
+  step5t:"Controllo qualita'",step5d:'Controlli rispettati? Strumenti tarati?',step5h:'Prendi fogli registrazione 4-8 ore.',
+  step6t:'Manutenzione',step6d:'Piano preventivo rispettato? Tarature in scadenza?',step6h:'Strumenti senza etichetta = NC immediata.',
+  step7t:'Non conformi',step7d:'Materiali in quarantena identificati? Decisione documentata?',step7h:'NC senza decisione 7+ giorni = NC.',
+  step8t:'Prodotto finito',step8d:"Tracciabilita' dal lotto MP al codice spedito.",step8h:'Chiudi il loop con la catena lotti.',
+  step9t:'KPI board',step9d:"KPI aggiornati? Operatori li conoscono?",step9h:'"Qual e\' il target FTQ?" dice tutto.',
+  guide6M:'Le 6M',m1:"competenza, formazione, qualifica",m2:"stato, taratura, manutenzione, capability",m3:"identificazione, conformita', FIFO, tracciabilita'",m4:"istruzioni aggiornate, applicate",m5:"strumenti tarati, MSA, frequenza",m6:"pulizia, ordine, ambiente",
+  guideClass:'Classificazione findings',cMaj:'NC Maggiore: assenza totale / cedimento sistemico',cMin:"NC Minore: scostamento isolato",cObs:"Osservazione: potrebbe degenerare",cOpp:"Opportunita': idea per migliorare",
+  iatfAdd:'IATF aggiunge: MSA, SPC su SC/CC, LPA, PPAP/APQP, CSR',iatfSc:'SC/CC: controllo rafforzato + approvazione cliente',iatfTrace:"Tracciabilita' IATF: retrace entro 1h",iatfNc:"NC Major: blocca certificazione; Minor: efficacia 90gg",
+  guideBp:'Best practice Off/Highway',bp1:'Safety-critical: catena lotti obbligatoria',bp2:'Coppie serraggio: chiave tarata + poka-yoke + registrazione',bp3:'Prove tenuta: 100% componenti critici per lotto',bp4:'NC Maggiori: quarantena 1h, disposizione 24h',
+  guideTrap:'&#x1F3AF; Domande-trappola (le NC nascoste)',
+  trap1q:'Puoi mostrarmi la revisione corrente di questa istruzione?',trap1a:'NC se: non trovano il documento, mostrano una versione non aggiornata, o non sanno dove cercarlo.',
+  trap2q:"Questo strumento e' tarato? Puoi mostrarmi il certificato?",trap2a:'NC se: manca etichetta, certificato scaduto, o strumento non in elenco taratura.',
+  trap3q:'Chi ha autorizzato questa produzione non conforme in attesa?',trap3a:'NC se: nessun responsabile identificato, materiale NC senza tag, o decisione >7 giorni aperta.',
+  trap4q:'Quand\'e\' stato eseguito l\'ultimo test del poka-yoke?',trap4a:'NC se: non sanno rispondere, il log non esiste, o la frequenza non e\' rispettata.',
+  trap5q:'Puoi mostrarmi il lotto di questa materia prima e risalire al fornitore?',trap5a:'NC se: identificazione mancante, FIFO non applicato, o retrace >5 minuti.',
+  labelNorm:'Tipo di norma',labelCode:'Codice audit',labelDate:'Data audit',labelAuditor:'Auditor',labelAuditee:'Auditato',labelLine:'Stabilimento / Linea',labelProduct:'Prodotto / Famiglia',labelScope:'Scopo',labelDocs:'Documenti di riferimento',labelStatus:'Stato',
+  labelHeaderPhoto:'Foto generali audit',labelReportPhoto:'Foto conclusioni / riepilogo',
+  addPhoto:'Aggiungi foto (max 3)',
+  phCode:'es. AUD-2026-001',phAuditor:'Nome cognome',phScope:"Verifica conformita' processo...",phDocs:'Control Plan rev.3, FMEA...',
+  stInProgress:'&#x1F504; In corso',stClosed:'&#x2705; Chiuso',stFollowup:'&#x1F501; Follow-up',
+  btnSave:'&#x1F4BE; Salva in archivio',autoSaveNote:'Salvato automaticamente. Le foto sono incluse.',
+  reportSummary:'Riepilogo findings',statC:'Conformi',statM:'NC Minori',statG:'NC Maggiori',statNA:'N/A',todoNote:'Incompleta:',todoNote2:'domande senza risposta.',
+  reportNc:"Non conformita' rilevate",noNc:'Nessuna NC rilevata.',labelConclusion:'Conclusioni generali',labelFollowup:'Data follow-up',phConclusion:'Valutazione complessiva...',
+  btnExport:'&#x2B07; Esporta',btnReport:'&#x1F4C4; Report',btnArchive:'&#x1F4BE; Archivia',
+  exportTitle:'&#x2B07; Esporta audit',expTxt:'&#x1F4C4; Report (.txt)\nPer email o stampa',expCsv:'&#x1F4CA; Dati (.csv)\nApribile in Excel',expJson:'&#x1F5C3; Backup singolo (.json)\nCon foto incluse',expAllJson:'&#x1F5C4; Backup intero archivio\nTutti gli audit con foto',expAllCsv:'&#x1F4E6; Storico completo (.csv)\nAnalisi Excel',expImport:'&#x1F4C2; Importa audit (.json)\nCarica da file',
+  importTitle:'&#x1F4C2; Importa audit',importDesc:'File .json esportato in precedenza. Singolo o backup completo.',btnImport:'Importa',btnCancel:'Annulla',btnClose:'Chiudi',
+  settingsTitle:'&#x2699;&#xFE0F; Impostazioni',settingsTheme:'Tema',settingsLang:'Lingua',settingsAbout:'Info',settingsTimeRange:'Orario tema automatico',settingsDefault:'Norma predefinita (nuovo audit)',
+  themeAuto:'&#x1F504; Automatico',themeLight:'&#x2600;&#xFE0F; Chiaro',themeDark:'&#x1F319; Scuro',
+  themeNote:"Automatico: chiaro durante il giorno, scuro la sera, secondo l'orario impostato.",timeSunrise:'Giorno dalle',timeSunset:'fino alle',timeNote:"Al di fuori di questo intervallo l'app usa il tema scuro.",
+  defaultNormNote:"La norma selezionata sara' preimpostata ad ogni nuovo audit.",aboutDesc:'App offline. Foto compresse e salvate localmente.',
+  storageActive:'Archivio attivo',storageNA:'Archivio non disponibile',storageHint:'Modalita privata? Usa Export JSON.',
+  audit:'audit',kb:'KB',toastArchived:'Audit archiviato',toastErr:'Errore salvataggio',toastNew:'Nuovo audit pronto',toastOpen:'Audit aperto',toastDel:'Audit eliminato',toastNotFound:'Audit non trovato',toastTxt:'TXT scaricato',toastCsv:'CSV scaricato',toastJson:'JSON scaricato',toastBackup:'Backup',toastHistory:'Storico',toastNone:'Nessun audit',toastImported:'audit importato/i',toastBadFile:'File non valido',toastNoAnswer:'Nessuna domanda',toastFormReset:'Form azzerato',toastDownErr:'Errore download',toastPhotoAdded:'&#x1F4F7; Foto aggiunta',toastPhotoMax:'Max 3 foto per domanda',
+  confirmDel:'Eliminare audit',confirmDelMsg:'NON reversibile. Le foto saranno eliminate.',confirmReset:'Azzerare il form corrente?\nGli audit in archivio NON vengono toccati.',
+  noCurrent:'Nuovo audit',noCode:'(no codice)',stInPLabel:'In corso',stClosedLabel:'Chiuso',stFollowLabel:'Follow-up',gotoQ:'Vai alla domanda',reportPrint:'REPORT AUDIT PROCESSO',
+  langChanged:'Lingua: Italiano',themeChanged:'Tema aggiornato',themeIsLight:'&#x2600;&#xFE0F; Tema chiaro',themeIsDark:'&#x1F319; Tema scuro',themeIsAuto:'&#x1F504; Automatico',
+  printBack:'&#x2190; Torna all\'app',printTitle:'Report Audit',printReady:'Report pronto &mdash; tocca Stampa / PDF',jumpBtn:'Prima senza risposta'
+},
+en:{
+  archive:'&#x1F5C2; Archive',guide:'&#x1F4D6; Guide',header:'&#x1F4DD; Data',checklist:'&#x2705; Checklist',report:'&#x1F4CA; Report',
+  searchPlaceholder:'Search code, line, product, auditor...',
+  guideTitle:'What is a process audit',guideDesc:'Systematic verification to determine whether production activities comply with planned requirements and whether those requirements are effectively implemented.',
+  guideRouteTitle:'&#x1F5FA; Recommended audit path',
+  step1t:'Raw Material / Incoming',step1d:'Lot identification, FIFO, labels, traceability.',step1h:'"How long has this lot been here?"',
+  step2t:'Quality office',step2d:'Control Plan, FMEA, instructions: current revision?',step2h:'Check official version before the line.',
+  step3t:'Line startup',step3d:'Setup, first piece, first-off, parameters set.',step3h:'Changeover = critical moment.',
+  step4t:'Production line',step4d:'1-2 full cycles. Compare observed vs instruction.',step4h:'Stay quiet, observe 3-5 minutes.',
+  step5t:'Quality control',step5d:'Controls respected? Instruments calibrated?',step5h:'Grab last 4-8h recording sheets.',
+  step6t:'Maintenance',step6d:'Preventive plan respected? Calibrations due?',step6h:'Instruments without label = immediate NC.',
+  step7t:'Non-conforming',step7d:'Quarantine identified? Decision documented?',step7h:'NC without decision 7+ days = NC.',
+  step8t:'Finished product',step8d:'Traceability from RM lot to shipped part number.',step8h:'Close the loop with the lot chain.',
+  step9t:'KPI board',step9d:'KPIs updated? Operators aware?',step9h:'"What is the FTQ target?" says it all.',
+  guide6M:'The 6Ms',m1:'competence, training, qualification',m2:'status, calibration, maintenance, capability',m3:'identification, conformity, FIFO, traceability',m4:'updated instructions, applied',m5:'calibrated instruments, MSA, frequency',m6:'cleanliness, order, environment',
+  guideClass:'Finding classification',cMaj:'Major NC: total absence / systemic failure',cMin:'Minor NC: isolated deviation',cObs:'Observation: could deteriorate',cOpp:'Opportunity: idea to improve',
+  iatfAdd:'IATF adds: MSA, SPC on SC/CC, LPA, PPAP/APQP, CSR',iatfSc:'SC/CC: enhanced control + customer approval',iatfTrace:'IATF traceability: retrace within 1h',iatfNc:'Major NC: blocks certification; Minor: effectiveness 90d',
+  guideBp:'Off/Highway best practices',bp1:'Safety-critical: mandatory lot chain',bp2:'Torque: calibrated wrench + poka-yoke + record',bp3:'Leak test: 100% critical components per lot',bp4:'Major NC: quarantine 1h, disposition 24h',
+  guideTrap:'&#x1F3AF; Trap questions (hidden NCs)',
+  trap1q:'Can you show me the current revision of this work instruction?',trap1a:'NC if: they cannot find it, show an outdated version, or do not know where it is.',
+  trap2q:'Is this instrument calibrated? Can you show me the certificate?',trap2a:'NC if: no label, expired certificate, or instrument not in calibration list.',
+  trap3q:'Who authorized this nonconforming material on hold?',trap3a:'NC if: no responsible identified, NC material without tag, or decision open >7 days.',
+  trap4q:'When was the last poka-yoke test performed?',trap4a:'NC if: they cannot answer, log does not exist, or frequency is not respected.',
+  trap5q:'Can you show me the lot of this raw material and trace back to the supplier?',trap5a:'NC if: no identification, FIFO not applied, or retrace >5 minutes.',
+  labelNorm:'Standard type',labelCode:'Audit code',labelDate:'Audit date',labelAuditor:'Auditor',labelAuditee:'Auditee',labelLine:'Plant / Line',labelProduct:'Product / Family',labelScope:'Scope',labelDocs:'Reference documents',labelStatus:'Status',
+  labelHeaderPhoto:'General audit photos',labelReportPhoto:'Conclusion / summary photos',
+  addPhoto:'Add photo (max 3)',
+  phCode:'e.g. AUD-2026-001',phAuditor:'First last name',phScope:'Process compliance check...',phDocs:'Control Plan rev.3, FMEA...',
+  stInProgress:'&#x1F504; In progress',stClosed:'&#x2705; Closed',stFollowup:'&#x1F501; Follow-up',
+  btnSave:'&#x1F4BE; Save to archive',autoSaveNote:'Auto-saved. Photos are included.',
+  reportSummary:'Findings summary',statC:'Compliant',statM:'Minor NC',statG:'Major NC',statNA:'N/A',todoNote:'Incomplete:',todoNote2:'unanswered questions.',
+  reportNc:'Non-conformities found',noNc:'No NC found.',labelConclusion:'General conclusions',labelFollowup:'Follow-up date',phConclusion:'Overall assessment...',
+  btnExport:'&#x2B07; Export',btnReport:'&#x1F4C4; Report',btnArchive:'&#x1F4BE; Archive',
+  exportTitle:'&#x2B07; Export audit',expTxt:'&#x1F4C4; Report (.txt)\nFor email or print',expCsv:'&#x1F4CA; Data (.csv)\nOpen in Excel',expJson:'&#x1F5C3; Single backup (.json)\nWith photos included',expAllJson:'&#x1F5C4; Full archive backup\nAll audits with photos',expAllCsv:'&#x1F4E6; Complete history (.csv)\nExcel analysis',expImport:'&#x1F4C2; Import audit (.json)\nLoad from file',
+  importTitle:'&#x1F4C2; Import audit',importDesc:'Previously exported .json file. Single or full backup.',btnImport:'Import',btnCancel:'Cancel',btnClose:'Close',
+  settingsTitle:'&#x2699;&#xFE0F; Settings',settingsTheme:'Theme',settingsLang:'Language',settingsAbout:'About',settingsTimeRange:'Automatic theme schedule',settingsDefault:'Default standard (new audit)',
+  themeAuto:'&#x1F504; Auto',themeLight:'&#x2600;&#xFE0F; Light',themeDark:'&#x1F319; Dark',
+  themeNote:'Auto: light during the day, dark in the evening, based on the schedule below.',timeSunrise:'Day from',timeSunset:'until',timeNote:'Outside this range the app uses dark theme.',
+  defaultNormNote:'Selected standard will be preset for every new audit.',aboutDesc:'Offline app. Photos compressed and stored locally.',
+  storageActive:'Archive active',storageNA:'Archive unavailable',storageHint:'Private mode? Use JSON Export.',
+  audit:'audit(s)',kb:'KB',toastArchived:'Audit archived',toastErr:'Save error',toastNew:'New audit ready',toastOpen:'Audit opened',toastDel:'Audit deleted',toastNotFound:'Audit not found',toastTxt:'TXT downloaded',toastCsv:'CSV downloaded',toastJson:'JSON downloaded',toastBackup:'Backup',toastHistory:'History',toastNone:'No audits',toastImported:'audit(s) imported',toastBadFile:'Invalid file',toastNoAnswer:'No question',toastFormReset:'Form cleared',toastDownErr:'Download error',toastPhotoAdded:'&#x1F4F7; Photo added',toastPhotoMax:'Max 3 photos per question',
+  confirmDel:'Delete audit',confirmDelMsg:'CANNOT be undone. Photos will be deleted.',confirmReset:'Clear current form?\nArchived audits are NOT affected.',
+  noCurrent:'New audit',noCode:'(no code)',stInPLabel:'In progress',stClosedLabel:'Closed',stFollowLabel:'Follow-up',gotoQ:'Go to question',reportPrint:'PROCESS AUDIT REPORT',
+  langChanged:'Language: English',themeChanged:'Theme updated',themeIsLight:'&#x2600;&#xFE0F; Light theme',themeIsDark:'&#x1F319; Dark theme',themeIsAuto:'&#x1F504; Automatic',
+  printBack:'&#x2190; Back to app',printTitle:'Audit Report',printReady:'Report ready &mdash; tap Print / PDF',jumpBtn:'First unanswered'
+}};
+var currentLang='it';
+function t(k){var s=STRINGS[currentLang];return(s&&s[k]!==undefined)?s[k]:(STRINGS.it[k]||k);}
+function applyI18n(){
+  document.documentElement.lang=currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(function(e){e.innerHTML=t(e.getAttribute('data-i18n'));});
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(e){e.placeholder=t(e.getAttribute('data-i18n-ph')).replace(/&#x[0-9A-Fa-f]+;/g,'').replace(/&[a-z]+;/g,'').trim();});
+  document.querySelectorAll('[data-i18n-tab]').forEach(function(e){e.innerHTML=t(e.getAttribute('data-i18n-tab'));});
+  updateLangBtns();updateThemeUI();updateDefaultNormBtns();refreshStorageInfo();
+}
+function setLang(l){currentLang=l;try{localStorage.setItem('audit_v6:lang',l);}catch(e){}applyI18n();toast(t('langChanged'));}
+function updateLangBtns(){var a=el('lb-it'),b=el('lb-en');if(a)a.className='lang-btn'+(currentLang==='it'?' active':'');if(b)b.className='lang-btn'+(currentLang==='en'?' active':'');}
+var currentTheme='auto',timeDawn='07:00',timeDusk='20:00',themeTimer=null;
+function isDaytime(){var now=new Date(),hm=now.getHours()*60+now.getMinutes(),p1=timeDawn.split(':'),dawn=parseInt(p1[0],10)*60+parseInt(p1[1],10),p2=timeDusk.split(':'),dusk=parseInt(p2[0],10)*60+parseInt(p2[1],10);return hm>=dawn&&hm<dusk;}
+function applyTheme(){var root=document.documentElement,isDark;if(currentTheme==='dark')isDark=true;else if(currentTheme==='light')isDark=false;else isDark=!isDaytime();root.setAttribute('data-theme',isDark?'dark':'light');var m=el('meta-theme-color');if(m)m.content=isDark?'#0d1117':'#1a56a0';}
+function startThemeTimer(){clearInterval(themeTimer);if(currentTheme==='auto')themeTimer=setInterval(function(){applyTheme();updateThemeUI();},60000);}
+function setTheme(th){currentTheme=th;try{localStorage.setItem('audit_v6:theme',th);}catch(e){}applyTheme();updateThemeUI();startThemeTimer();var s=el('time-settings-section');if(s)s.style.display=th==='auto'?'':'none';toast(t('themeChanged'));}
+function updateThemeUI(){
+  ['auto','light','dark'].forEach(function(k){var b=el('seg-'+k);if(b)b.className='seg-btn'+(currentTheme===k?' active':'');});
+  var ind=el('theme-indicator');
+  if(ind){var isDark=document.documentElement.getAttribute('data-theme')==='dark';var label=currentTheme==='auto'?t('themeIsAuto')+' \u2014 '+(isDark?t('themeIsDark'):t('themeIsLight')):(isDark?t('themeIsDark'):t('themeIsLight'));ind.innerHTML=label;}
+  var s=el('time-settings-section');if(s)s.style.display=currentTheme==='auto'?'':'none';
+}
+function saveTimeRange(){var d=el('time-dawn'),k=el('time-dusk');if(d)timeDawn=d.value||'07:00';if(k)timeDusk=k.value||'20:00';try{localStorage.setItem('audit_v6:dawn',timeDawn);localStorage.setItem('audit_v6:dusk',timeDusk);}catch(e){}if(currentTheme==='auto'){applyTheme();updateThemeUI();}}
+var defaultNorm='ISO9001';
+function setDefaultNorm(norm){defaultNorm=norm;try{localStorage.setItem('audit_v6:defNorm',norm);}catch(e){}updateDefaultNormBtns();toast(norm==='IATF16949'?'Default: IATF 16949':'Default: ISO 9001');}
+function updateDefaultNormBtns(){var a=el('seg-def-9001'),b=el('seg-def-iatf');if(a)a.className='seg-btn'+(defaultNorm==='ISO9001'?' active':'');if(b)b.className='seg-btn'+(defaultNorm==='IATF16949'?' active':'');}
+function setupPWA(){
+  var svg='<svg width="180" height="180" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect width="120" height="120" rx="26" fill="#1a56a0"/><rect x="30" y="22" width="60" height="76" rx="8" fill="white"/><rect x="42" y="14" width="36" height="18" rx="9" fill="#1a56a0"/><rect x="42" y="14" width="36" height="18" rx="9" fill="none" stroke="white" stroke-width="2.5"/><circle cx="52" cy="23" r="3" fill="white" opacity="0.5"/><line x1="42" y1="48" x2="78" y2="48" stroke="#bdd4ed" stroke-width="3" stroke-linecap="round"/><line x1="42" y1="60" x2="78" y2="60" stroke="#bdd4ed" stroke-width="3" stroke-linecap="round"/><line x1="42" y1="72" x2="63" y2="72" stroke="#bdd4ed" stroke-width="3" stroke-linecap="round"/><circle cx="81" cy="84" r="18" fill="#15803d"/><polyline points="72,84 79,91 92,76" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+  var b64='data:image/svg+xml;base64,'+btoa(svg);
+  var il=el('pwa-icon-link'),fl=el('pwa-favicon');if(il)il.href=b64;if(fl)fl.href=b64;
+  var mf={name:'Audit Tool',short_name:'Audit',description:'ISO 9001 / IATF 16949 Process Audit',start_url:'./',display:'standalone',background_color:'#1a56a0',theme_color:'#1a56a0',orientation:'portrait-primary',icons:[{src:b64,sizes:'180x180',type:'image/svg+xml'},{src:b64,sizes:'512x512',type:'image/svg+xml'}]};
+  var ml=el('pwa-manifest');if(ml)ml.href='data:application/manifest+json;base64,'+btoa(JSON.stringify(mf));
+}
+var SP='audit_v6:',SK=SP+'audit:',storageOK=false;
+function storageTest(){try{var k=SP+'__t__';localStorage.setItem(k,'1');var v=localStorage.getItem(k);localStorage.removeItem(k);return v==='1';}catch(e){return false;}}
+function lsSet(k,o){try{localStorage.setItem(SK+k,JSON.stringify(o));return true;}catch(e){return false;}}
+function lsGet(k){try{var v=localStorage.getItem(SK+k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function lsDel(k){try{localStorage.removeItem(SK+k);}catch(e){}}
+function lsKeys(){var ks=[];try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.startsWith(SK))ks.push(k.slice(SK.length));}}catch(e){}return ks;}
+function getAllAudits(){return lsKeys().map(function(k){return lsGet(k);}).filter(Boolean).sort(function(a,b){return(b.savedAt||'').localeCompare(a.savedAt||'');});}
+function countAudits(){return lsKeys().length;}
+function getStorageUsage(){var b=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.startsWith(SP))b+=(localStorage.getItem(k)||'').length+k.length;}}catch(e){}return b;}
+var PHASE_ICONS_9001=['&#x1F4CB;','&#x1F9D1;','&#x2699;','&#x1F4E6;','&#x1F527;','&#x1F4CF;','&#x1F3ED;','&#x1F4CA;'];
+var PHASE_ICONS_IATF=['&#x1F4C4;','&#x1F69A;','&#x1F9D1;','&#x1F4BB;','&#x1F50E;','&#x1F6A8;','&#x1F3C6;'];
+var PHASES_9001=[
+  {title:"1. Documentazione e pianificazione",cls:"iso",items:[
+    {q:"Flow chart del processo aggiornato e accessibile in linea?",ref:"ISO 9001 cl. 4.4",hint:"Chi ha firmato? Data ultima revisione? Confronta con la data del CP."},
+    {q:"Control Plan aggiornato e coerente con FMEA?",ref:"ISO 9001 cl. 8.5.1",hint:"Le SC/CC sono evidenziate con simbolo corretto su tutti e tre i documenti?"},
+    {q:"Istruzioni di lavoro in postazione, leggibili, revisione corrente?",ref:"ISO 9001 cl. 7.5.3",hint:"Chiedi all'operatore di mostrarti le istruzioni. Revisione = quella del CP?"},
+    {q:"Piano di produzione comunicato agli operatori per il turno?",ref:"ISO 9001 cl. 8.1",hint:"L'operatore sa quanti pezzi fare, in che sequenza, e quale priorita' ha?"},
+    {q:"Revisioni documentali recenti distribuite e versioni obsolete ritirate?",ref:"ISO 9001 cl. 7.5.3",hint:"Revisioni negli ultimi 90gg: le vecchie sono state ritirate fisicamente?"}]},
+  {title:"2. Personale e competenza (Man)",cls:"iso",items:[
+    {q:"Operatori qualificati e formati per le attivita' che svolgono?",ref:"ISO 9001 cl. 7.2",hint:"Matrice competenze: e' aggiornata? Copre tutti gli operatori presenti oggi?"},
+    {q:"Registrazioni addestramento per operazioni speciali disponibili?",ref:"ISO 9001 cl. 7.2",hint:"Saldatori: patentino valido? Operatori su SC/CC: qualifica firmata e datata?"},
+    {q:"Personale conosce obiettivi di qualita' della propria postazione?",ref:"ISO 9001 cl. 6.2",hint:"Chiedi direttamente: qual e' il target scarti? Conosci il PPM del mese scorso?"},
+    {q:"Cambio turno con passaggio consegne formalizzato?",ref:"ISO 9001 cl. 8.5.1",hint:"Esiste un report consegna turno? Viene firmato? Include anomalie in corso?"},
+    {q:"Operatori interinali/temporanei con qualifica equivalente ai fissi?",ref:"ISO 9001 cl. 7.2",hint:"Operatore assunto <3 mesi: ha OJT completo e firmato da supervisore?"}]},
+  {title:"3. Macchine e attrezzature (Machine)",cls:"iso",items:[
+    {q:"Macchine identificate con stato e data di manutenzione visibile?",ref:"ISO 9001 cl. 7.1.3",hint:"Cartellino o etichetta con data ultima manutenzione e prossima scadenza?"},
+    {q:"Piano manutenzione preventiva rispettato nei tempi?",ref:"ISO 9001 cl. 7.1.3",hint:"Prendi 2 macchine: la prossima scadenza e' futura? Ci sono ritardi non giustificati?"},
+    {q:"Strumenti di misura con taratura valida identificata?",ref:"ISO 9001 cl. 7.1.5.2",hint:"Regola: nessuno strumento senza etichetta valida. GR&R < 10% = OK, 10-30% = attenzione."},
+    {q:"Strumenti fuori taratura: procedura applicata con area dedicata?",ref:"ISO 9001 cl. 7.1.5.2",hint:"Area strumenti NC presente? Strumenti etichettati 'FUORI TARATURA - NON USARE'?"},
+    {q:"First-off e setup approval formalizzati a ogni cambio produzione?",ref:"ISO 9001 cl. 8.5.1",hint:"Modulo first piece dell'ultima produzione: chi lo ha firmato? E' allegato all'OF?"},
+    {q:"Attrezzature speciali (stampi, fixture) identificate con registro manutenzione?",ref:"ISO 9001 cl. 7.1.3",hint:"Registro stampi: ultima manutenzione quando? Stato visivo accettabile?"}]},
+  {title:"4. Materiali e tracciabilita' (Material)",cls:"iso",items:[
+    {q:"Materie prime identificate con lotto e codice in ogni postazione?",ref:"ISO 9001 cl. 8.5.2",hint:"Prendi un componente casuale: riesci a leggere il lotto e il codice fornitore?"},
+    {q:"Tracciabilita' completa da prodotto finito a materia prima?",ref:"ISO 9001 cl. 8.5.2",hint:"Prendi 1 pezzo finito: risali al lotto MP. Deve richiedere meno di 5 minuti."},
+    {q:"Materiali non conformi segregati con tag rossa identificativa?",ref:"ISO 9001 cl. 8.7",hint:"Area quarantena dedicata e separata fisicamente? NC senza tag = NC maggiore."},
+    {q:"Scarti con codice causale registrato e trend analizzato?",ref:"ISO 9001 cl. 10.2",hint:"Pareto scarti ultimo mese disponibile? Azioni implementate sulle top 3 cause?"},
+    {q:"Caratteristiche speciali con controlli dedicati e tracciati?",ref:"ISO 9001 cl. 8.5.1",hint:"Ogni SC/CC del disegno ha riga specifica nel CP con metodo e frequenza?"},
+    {q:"FIFO applicato e verificabile nel WIP e magazzino?",ref:"ISO 9001 cl. 8.5.4",hint:"Il materiale piu' vecchio e' usato per primo? Come si verifica l'ordine FIFO?"}]},
+  {title:"5. Metodi e istruzioni (Method)",cls:"iso",items:[
+    {q:"Operatore esegue il processo esattamente come da istruzioni?",ref:"ISO 9001 cl. 8.5.1",hint:"Osserva 1 ciclo completo in silenzio. Annota ogni deviazione, anche minima."},
+    {q:"Parametri critici monitorati e registrati in tempo reale?",ref:"ISO 9001 cl. 8.5.1",hint:"Temperatura, pressione, coppia: confronta setpoint vs valore reale attuale."},
+    {q:"Poka-yoke attivi e verificati con test periodici documentati?",ref:"ISO 9001 cl. 8.5.1",hint:"Testa almeno 1 poka-yoke presentando un pezzo NC. Log verifica presente?"},
+    {q:"Modifiche di processo gestite con change management formale?",ref:"ISO 9001 cl. 8.5.6",hint:"Ultime 3 modifiche: chi ha approvato? Cliente informato dove richiesto?"},
+    {q:"5S applicato con audit recente e piano azioni aperte?",ref:"ISO 9001 cl. 7.1.4",hint:"Punteggio ultimo audit 5S? Piano azioni scadute = NC."}]},
+  {title:"6. Misurazione e controllo (Measurement)",cls:"iso",items:[
+    {q:"Controlli in linea alla frequenza del Control Plan?",ref:"ISO 9001 cl. 8.5.1",hint:"Confronta CP con fogli registrazione ultime 4 ore: campioni mancanti = NC."},
+    {q:"Registrazioni leggibili, complete, firmate senza spazi vuoti?",ref:"ISO 9001 cl. 7.5.3",hint:"Valori fuori specifica senza commento o disposizione = NC minore."},
+    {q:"Strumenti adeguati alla tolleranza (regola 10:1) e tarati?",ref:"ISO 9001 cl. 7.1.5",hint:"Risoluzione strumento <= 1/10 della tolleranza. Certificato tracciabile?"},
+    {q:"Prove funzionali su componenti critici per ogni lotto?",ref:"ISO 9001 cl. 8.6",hint:"Off/highway: prove pressione, tenuta, coppia su ogni lotto. Registro?"},
+    {q:"Reazione alle anomalie di controllo documentata e tempestiva?",ref:"ISO 9001 cl. 8.5.1",hint:"Ultimo valore fuori spec: come hanno reagito? Chi ha firmato la disposizione?"}]},
+  {title:"7. Ambiente di lavoro (Milieu)",cls:"iso",items:[
+    {q:"Condizioni ambientali idonee e monitorate (T, umidita', luce)?",ref:"ISO 9001 cl. 7.1.4",hint:"Se ci sono requisiti specifici: sono misurati e registrati con strumenti tarati?"},
+    {q:"Postazioni prive di rischi per la qualita' del prodotto?",ref:"ISO 9001 cl. 7.1.4",hint:"Rischio caduta pezzi? Contaminazione da oli? Superfici che potrebbero graffiare?"},
+    {q:"Rifiuti e scarti gestiti per evitare contaminazione prodotto conforme?",ref:"ISO 9001 cl. 8.5.4",hint:"Contenitori dedicati e chiaramente identificati vicino alla linea?"},
+    {q:"ESD, pulizia, contaminanti controllati dove richiesto dal prodotto?",ref:"ISO 9001 cl. 7.1.4",hint:"Componenti sensibili all'elettrostatica: area ESD protetta? Bracciali verificati?"}]},
+  {title:"8. Output, KPI e miglioramento",cls:"iso",items:[
+    {q:"KPI di linea (FTQ, scarti, OEE) visibili e aggiornati oggi?",ref:"ISO 9001 cl. 9.1.1",hint:"Il tabellone e' aggiornato al giorno corrente? L'operatore sa leggere i KPI?"},
+    {q:"Azioni correttive chiuse con evidenza di efficacia verificata?",ref:"ISO 9001 cl. 10.2",hint:"NC degli ultimi 3-6 mesi: il problema si e' ripresentato? Chi ha verificato?"},
+    {q:"Reclami cliente analizzati con 8D chiusa entro scadenza?",ref:"ISO 9001 cl. 9.1.2",hint:"Ultimo reclamo: 8D chiusa? Azione permanente implementata in linea e verificata?"},
+    {q:"Audit precedenti: NC con evidenza di chiusura efficace?",ref:"ISO 9001 cl. 9.2",hint:"Penultimo audit report: le NC sono chiuse con evidenza documentata?"},
+    {q:"Meeting qualita' periodici con azioni verbalizzate e seguite?",ref:"ISO 9001 cl. 9.3",hint:"Verbale ultimo management review: le azioni hanno responsabile e data?"}]}
+];
+var PHASES_IATF=[
+  {title:"P1. Pianificazione e documentazione avanzata",cls:"iatf-hdr",items:[
+    {q:"APQP/PPAP completato e approvato formalmente dal cliente?",ref:"IATF cl. 8.3.4.1",hint:"PSW firmato dal cliente? Livello PPAP definito? Scadenza submission rispettata?"},
+    {q:"PFMEA aggiornata con RPN elevati e AP implementati in linea?",ref:"IATF cl. 8.3.3.3",hint:"RPN > 100: le azioni permanenti sono implementate fisicamente in postazione?"},
+    {q:"Control Plan coerente con PFMEA: ogni SC/CC con riga dedicata?",ref:"IATF cl. 8.5.1.1",hint:"Prendi una SC dal disegno: c'e' la riga CP con metodo, frequenza, responsabile?"},
+    {q:"SC/CC con simboli coerenti su disegno, FMEA e Control Plan?",ref:"IATF cl. 8.3.3.3",hint:"I simboli speciali (triangolo, diamante) sono identici nei 3 documenti?"},
+    {q:"Customer-Specific Requirements integrati nei documenti di processo?",ref:"IATF cl. 4.3.2",hint:"Quali clienti hanno CSR? Sono stati recepiti nel CP e nelle istruzioni operative?"},
+    {q:"Deviazioni/waiver dal cliente approvate per iscritto se in corso?",ref:"IATF cl. 8.3.4.1",hint:"Ci sono deviazioni attive? Approvazione cliente scritta con scadenza definita?"}]},
+  {title:"P2. Fornitori e gestione incoming",cls:"iatf-hdr",items:[
+    {q:"Componenti critici da fornitori in Approved Supplier List?",ref:"IATF cl. 8.4.1.2",hint:"Prendi un componente SC: fornitore in ASL? Ultimo audit supplier quando?"},
+    {q:"Incoming inspection conforme al CP e registrata con firma?",ref:"IATF cl. 8.4.3",hint:"Registro incoming ultime 2 settimane: frequenza rispettata? Firmato? Scostamenti?"},
+    {q:"Tracciabilita' completa: retrace su tutti i componenti entro 1 ora?",ref:"IATF cl. 8.5.2.1",hint:"Simula il retrace: cronometri dall'inizio. > 1h = NC maggiore IATF."},
+    {q:"NC da fornitori con MRB documentato e tag rossa presente?",ref:"IATF cl. 8.7.1",hint:"Lotti in quarantena: tag rossa? Decisione entro scadenza? MRB firmato?"},
+    {q:"Cambio fornitore approvato dal cliente prima dell'implementazione?",ref:"IATF cl. 8.5.6.1.1",hint:"Cambi fornitore ultimi 12 mesi: approvazione cliente documentata per ognuno?"},
+    {q:"Sub-supplier monitorati con scorecard e azioni su KPI sotto target?",ref:"IATF cl. 8.4.1",hint:"Scorecard sub-supplier disponibile? Fornitore sotto target ha piano di miglioramento?"}]},
+  {title:"P3. Personale, competenze e qualifiche",cls:"iatf-hdr",items:[
+    {q:"Matrice competenze con gap analysis e piano formazione aggiornato?",ref:"IATF cl. 7.2.1",hint:"Piano training YTD: % completamento? Gap critici su SC/CC sono coperti?"},
+    {q:"Lista operatori qualificati su ogni SC/CC disponibile e aggiornata?",ref:"IATF cl. 8.5.1.1",hint:"Per ogni SC/CC: c'e' la lista firmata di chi e' autorizzato a eseguire quel controllo?"},
+    {q:"OJT documentato con record firmati da supervisore?",ref:"IATF cl. 7.2.3",hint:"Operatore assunto < 6 mesi: OJT completo, firmato, con valutazione finale?"},
+    {q:"Personale conosce impatto qualita' e sicurezza della propria postazione?",ref:"IATF cl. 7.3.1",hint:"Chiedi: qual e' il difetto piu' pericoloso che puoi generare? Cosa fai se lo trovi?"},
+    {q:"Responsabile qualita' di linea identificato e presente in turno?",ref:"IATF cl. 8.5.1.1",hint:"Chi e' il quality rep per questa linea oggi? Conosce le SC/CC in lavorazione?"}]},
+  {title:"P4. Macchine, capability e poka-yoke",cls:"iatf-hdr",items:[
+    {q:"Cp/Cpk su tutte le SC/CC: Cpk >= 1.67 con dati aggiornati?",ref:"IATF cl. 8.5.1.1",hint:"Cpk 1.67+ = OK, 1.33-1.67 = monitoraggio intensivo, <1.33 = 100% inspection obbligatoria."},
+    {q:"MSA (GR&R) su strumenti SC/CC: GR&R < 10%?",ref:"IATF cl. 7.1.5.1.1",hint:"GR&R < 10% = OK, 10-30% = accettabile con approvazione, > 30% = NC. Data analisi?"},
+    {q:"Piano TPM implementato con OEE target monitorato?",ref:"IATF cl. 8.5.1.1",hint:"OEE attuale vs target: qual e' il gap? Le principali perdite sono note e attaccate?"},
+    {q:"FAI eseguita per ogni cambio produzione con record firmato?",ref:"IATF cl. 8.5.1.3",hint:"Ultimo cambio produzione: record FAI firmato dal quality? Data e ora annotate?"},
+    {q:"Poka-yoke verificati con frequenza definita e log aggiornato?",ref:"IATF cl. 8.3.4.4",hint:"Log verifica poka-yoke: ultimo check quando? Chi firma? Frequenza rispettata?"},
+    {q:"Capability ricalcolata dopo ogni manutenzione maggiore o cambio utensile?",ref:"IATF cl. 8.5.1.1",hint:"Ultima sostituzione componente critico: Cpk e' stato ricalcolato con nuovi dati?"}]},
+  {title:"P5. Controlli in linea, SPC e acceptance",cls:"iatf-hdr",items:[
+    {q:"Carte SPC aggiornate in tempo reale con reaction plan applicato?",ref:"IATF cl. 9.1.1.1",hint:"Punti fuori controllo recenti: il reaction plan e' stato seguito? Chi ha firmato?"},
+    {q:"Sampling plan statisticamente fondato (AQL) e documentato?",ref:"IATF cl. 8.6.2",hint:"Il piano campionamento e' allegato al CP? AQL definito per tipo di caratteristica?"},
+    {q:"100% inspection attivata su SC/CC se Cpk < 1.67?",ref:"IATF cl. 8.5.1.1",hint:"Procedura di escalation esiste? E' stata attivata negli ultimi 6 mesi? Con quale trigger?"},
+    {q:"Error proofing validato con test pianificati e risultati registrati?",ref:"IATF cl. 8.3.4.4",hint:"Scheda validazione EP presente? Test falliti documentati con azioni correttive?"},
+    {q:"Registrazioni controllo conformi al CP per frequenza e metodo?",ref:"IATF cl. 8.6.1",hint:"Fogli ultime 8h: anomalie tracciate? Valori fuori spec con disposizione firmata?"},
+    {q:"Campioni limite (boundary samples) per accettazione visiva presenti?",ref:"IATF cl. 8.6.2",hint:"Boundary samples in postazione? Aggiornati? Approvati dal cliente? Data validita'?"}]},
+  {title:"P6. NC, azioni correttive e LPA",cls:"iatf-hdr",items:[
+    {q:"NC interne gestite con 8D o metodologia strutturata equivalente?",ref:"IATF cl. 10.2.3",hint:"NC aperta: ha root cause verificata con 5Why o Ishikawa? Azione permanente implementata?"},
+    {q:"Reclami cliente: 8D con D3 entro 24h e chiusura entro 30 giorni?",ref:"IATF cl. 10.2.3",hint:"Ultimo reclamo: containment entro 24h attivato? 8D chiusa entro 30gg?"},
+    {q:"Lesson learned integrati in PFMEA, CP e istruzioni dopo ogni NC grave?",ref:"IATF cl. 10.2.4",hint:"Ultima NC maggiore: FMEA aggiornata in quale revisione? CP aggiornato di conseguenza?"},
+    {q:"Layered Process Audit con cadenza definita e % esecuzione tracciata?",ref:"IATF cl. 9.2.2.1",hint:"Piano LPA annuale: % completamento ad oggi? Chi esegue LPA di livello 2 e 3?"},
+    {q:"Scrap e rework con target, trend mensile e piano riduzione attivo?",ref:"IATF cl. 9.1.1.1",hint:"Trend 3 mesi scrap: in miglioramento? Azioni sulle top 2 cause sono attive?"},
+    {q:"Escalation interna definita per NC critiche su safety o SC/CC?",ref:"IATF cl. 8.7.1",hint:"Procedura escalation: chi viene notificato entro quanto tempo per NC su safety?"}]},
+  {title:"P7. KPI cliente e miglioramento continuo",cls:"iatf-hdr",items:[
+    {q:"KPI cliente (PPM, DPMO, warranty) monitorati mensile vs target?",ref:"IATF cl. 9.1.2",hint:"PPM esterni ultimi 3 mesi vs target cliente: trend? Azioni se sopra target?"},
+    {q:"Customer portal/scorecard monitorato con azioni se amber/red?",ref:"IATF cl. 9.1.2.1",hint:"Chi controlla il portale? Rating attuale? Warning aperti senza risposta?"},
+    {q:"Obiettivi qualita' a cascata fino all'operatore di linea?",ref:"IATF cl. 6.2.2",hint:"Chiedi all'operatore: conosce il target FTQ della sua postazione oggi?"},
+    {q:"Tutti gli audit pianificati nell'audit program eseguiti nei tempi?",ref:"IATF cl. 9.2.2",hint:"Audit program: % completamento ad oggi? Audit in ritardo con giustificazione?"},
+    {q:"Benchmark e lesson learned condivisi con altri plant del gruppo?",ref:"IATF cl. 10.3",hint:"Sharing di lesson learned con altri stabilimenti: con quale cadenza? Come documentato?"}]}
+];
+function getPhases(n){return n==='IATF16949'?PHASES_IATF:PHASES_9001;}
+function getPhaseIcons(n){return n==='IATF16949'?PHASE_ICONS_IATF:PHASE_ICONS_9001;}
+var currentId=null,currentNorm='ISO9001',currentStatus='in-progress',currentTab='archive';
+var checklistBuilt={},navHistory=[],photoStore={};
+function genId(){return 'audit-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);}
+function el(id){return document.getElementById(id);}
+function gv(id){var e=el(id);return e?(e.value||''):'';}
+function sv(id,v){var e=el(id);if(e)e.value=v==null?'':v;}
+function haptic(t){try{if(navigator.vibrate){if(t==='light')navigator.vibrate(10);else if(t==='medium')navigator.vibrate([15,10,15]);else if(t==='heavy')navigator.vibrate([30,20,30,20,30]);}}catch(e){}}
+
+/* PHOTO */
+function compressImage(file,cb){
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var img=new Image();
+    img.onload=function(){
+      var MAX=900,q=0.72,w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
+      var cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      cb(cv.toDataURL('image/jpeg',q));
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function getPhotos(key){return photoStore[key]||[];}
+function setPhotos(key,arr){photoStore[key]=arr;schedSave();}
+function renderPhotoThumbs(key,thumbsEl,addBtn,max){
+  if(!thumbsEl)return;
+  thumbsEl.innerHTML='';
+  getPhotos(key).forEach(function(src,i){
+    var wrap=document.createElement('div');wrap.className='photo-thumb-wrap';
+    var img=document.createElement('img');img.className='photo-thumb';img.src=src;
+    img.onclick=function(){openLightbox(src,'Foto '+(i+1));};
+    var del=document.createElement('button');del.className='photo-del';del.innerHTML='&times;';
+    del.onclick=function(e){e.stopPropagation();var arr=getPhotos(key);arr.splice(i,1);setPhotos(key,arr);renderPhotoThumbs(key,thumbsEl,addBtn,max);buildMinimap(currentNorm);};
+    wrap.appendChild(img);wrap.appendChild(del);thumbsEl.appendChild(wrap);
+  });
+  if(addBtn)addBtn.classList.toggle('disabled',getPhotos(key).length>=(max||3));
+}
+function triggerPhotoInput(ctx,inputId){
+  var inp=el(inputId);if(!inp)return;
+  inp.onchange=function(){
+    Array.from(inp.files||[]).forEach(function(file){
+      var key=ctx==='header'?'header':ctx==='report'?'report':ctx;
+      if(getPhotos(key).length>=3){toast(t2('toastPhotoMax'));return;}
+      compressImage(file,function(data){
+        var arr=getPhotos(key);arr.push(data);setPhotos(key,arr);
+        var thumbsEl=el(ctx+'-photo-thumbs'),addBtn=el(ctx+'-photo-add-btn');
+        renderPhotoThumbs(key,thumbsEl,addBtn,3);
+        updatePhotoIndicators();toast(t2('toastPhotoAdded'));haptic('light');
+      });
+    });
+    inp.value='';
+  };
+  inp.click();
+}
+function triggerQuestionPhoto(photoKey,thumbsEl,addBtn){
+  var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.setAttribute('capture','environment');inp.multiple=true;
+  inp.onchange=function(){
+    Array.from(inp.files||[]).forEach(function(file){
+      if(getPhotos(photoKey).length>=3){toast(t2('toastPhotoMax'));return;}
+      compressImage(file,function(data){
+        var arr=getPhotos(photoKey);arr.push(data);setPhotos(photoKey,arr);
+        renderPhotoThumbs(photoKey,thumbsEl,addBtn,3);
+        buildMinimap(currentNorm);updatePhotoIndicators();toast(t2('toastPhotoAdded'));haptic('light');
+        if(thumbsEl){var qel=thumbsEl.closest('.question');if(qel)qel.classList.toggle('has-photo',arr.length>0);}
+      });
+    });
+  };
+  inp.click();
+}
+function openLightbox(src,cap){
+  var lb=el('lightbox'),img=el('lightbox-img'),capEl=el('lightbox-caption');
+  if(!lb)return;img.src=src;if(capEl)capEl.textContent=cap||'';lb.classList.add('open');
+}
+function closeLightbox(){var lb=el('lightbox');if(lb){lb.classList.remove('open');var i=el('lightbox-img');if(i)i.src='';}}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLightbox();});
+function updatePhotoIndicators(){
+  var hPh=el('header-photo-thumbs'),hBtn=el('header-photo-add-btn');
+  if(hPh&&hBtn)renderPhotoThumbs('header',hPh,hBtn,3);
+}
+
+/* CHECKLIST BUILD */
+function buildChecklist(norm){
+  if(checklistBuilt[norm])return;checklistBuilt[norm]=true;
+  var container=el('checklist-container'),phases=getPhases(norm),icons=getPhaseIcons(norm),prefix=norm==='IATF16949'?'I':'S';
+  phases.forEach(function(phase,pi){
+    var div=document.createElement('div');div.className='phase';div.dataset.norm=norm;div.dataset.pi=pi;div.style.display=norm===currentNorm?'':'none';
+    var icon=icons[pi]||'&#x1F4CB;',hc=phase.cls==='iso'?'iso':'iatf-hint';
+    var itemsHTML=phase.items.map(function(item,qi){
+      var name=prefix+pi+'-'+qi,photoKey=norm+'-'+pi+'-'+qi;
+      return '<div class="question" data-qi="'+qi+'" id="q-'+norm+'-'+pi+'-'+qi+'">'+
+        '<div class="q-text">'+(qi+1)+'. '+item.q+'</div>'+
+        '<div class="q-ref">'+item.ref+'</div>'+
+        '<div class="q-hint '+hc+'">&#x1F4A1; '+item.hint+'</div>'+
+        '<div class="rating">'+
+          '<label><input type="radio" name="'+name+'" value="C"><span>&#x2714; C</span></label>'+
+          '<label><input type="radio" name="'+name+'" value="NC-M"><span>&#x26A0; NC&#x2212;</span></label>'+
+          '<label><input type="radio" name="'+name+'" value="NC-G"><span>&#x1F6A8; NC+</span></label>'+
+          '<label><input type="radio" name="'+name+'" value="NA"><span>N/A</span></label>'+
+        '</div>'+
+        '<textarea class="notes" placeholder="Evidenze oggettive, n. lotto, riferimento..." data-norm="'+norm+'" data-q="'+pi+'-'+qi+'"></textarea>'+
+        '<div class="photo-widget">'+
+          '<div class="photo-thumbs" id="pt-'+norm+'-'+pi+'-'+qi+'"></div>'+
+          '<button class="photo-add-btn" id="pab-'+norm+'-'+pi+'-'+qi+'" type="button">&#x1F4F7; Aggiungi foto</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    div.innerHTML='<div class="phase-hdr '+phase.cls+'"><div class="phase-title-wrap"><span class="phase-icon">'+icon+'</span><span class="phase-title-text">'+phase.title+'</span></div><div class="ph-meta"><span class="ph-ct">'+phase.items.length+'</span><span class="chev">&#x25BE;</span></div></div><div class="phase-body">'+itemsHTML+'</div>';
+    var hdr=div.querySelector('.phase-hdr'),body=div.querySelector('.phase-body');
+    hdr.addEventListener('click',function(){var wasOpen=body.classList.contains('open');body.classList.toggle('open');hdr.classList.toggle('open');if(!wasOpen)haptic('light');});
+    div.querySelectorAll('input[type=radio]').forEach(function(r){
+      r.addEventListener('change',function(){
+        if(r.value==='NC-G'){haptic('heavy');var qel=r.closest('.question');if(qel){qel.classList.add('nc-shake');setTimeout(function(){qel.classList.remove('nc-shake');},400);}}
+        else if(r.value==='NC-M')haptic('medium');else haptic('light');
+        var qel=r.closest('.question');if(qel)qel.classList.add('answered');
+        onAnswer();
+      });
+    });
+    div.querySelectorAll('textarea.notes').forEach(function(tx){tx.addEventListener('input',onAnswer);});
+    phase.items.forEach(function(item,qi){
+      var photoKey=norm+'-'+pi+'-'+qi;
+      var thumbsEl=div.querySelector('#pt-'+norm+'-'+pi+'-'+qi);
+      var addBtn=div.querySelector('#pab-'+norm+'-'+pi+'-'+qi);
+      if(addBtn&&thumbsEl){addBtn.addEventListener('click',function(){triggerQuestionPhoto(photoKey,thumbsEl,addBtn);});}
+    });
+    container.appendChild(div);
+  });
+}
+function showChecklistForNorm(norm){document.querySelectorAll('#checklist-container .phase').forEach(function(e){e.style.display=e.dataset.norm===norm?'':'none';});}
+function reloadPhotoThumbs(norm){
+  var phases=getPhases(norm);
+  phases.forEach(function(ph,pi){ph.items.forEach(function(_,qi){
+    var photoKey=norm+'-'+pi+'-'+qi;
+    var thumbsEl=el('pt-'+norm+'-'+pi+'-'+qi),addBtn=el('pab-'+norm+'-'+pi+'-'+qi);
+    if(thumbsEl&&addBtn){renderPhotoThumbs(photoKey,thumbsEl,addBtn,3);var qel=el('q-'+norm+'-'+pi+'-'+qi);if(qel)qel.classList.toggle('has-photo',getPhotos(photoKey).length>0);}
+  });});
+}
+
+/* MINIMAP */
+function buildMinimap(norm){
+  var map=el('phase-minimap');if(!map)return;
+  var phases=getPhases(norm),prefix=norm==='IATF16949'?'I':'S';
+  var html='<span class="mm-label">&#x1F5FA;</span>';
+  phases.forEach(function(ph,pi){
+    var g=0,m=0,done=0,tot=ph.items.length,hasPhoto=false;
+    ph.items.forEach(function(_,qi){
+      var sel=document.querySelector('input[name="'+prefix+pi+'-'+qi+'"]:checked');
+      if(sel){done++;if(sel.value==='NC-G')g++;else if(sel.value==='NC-M')m++;}
+      if(getPhotos(norm+'-'+pi+'-'+qi).length>0)hasPhoto=true;
+    });
+    var missing=tot-done,cls='mm-dot';
+    if(g>0)cls+=' has-nc-g';else if(m>0)cls+=' has-nc-m';else if(done===tot)cls+=' all-done';
+    if(hasPhoto)cls+=' has-photo-badge';
+    html+='<button class="'+cls+'" title="'+ph.title+'" onclick="jumpToPhase('+pi+')">'+
+      (missing>0?'<span class="mm-missing">'+missing+'</span>':'')+
+      (pi+1)+'</button>';
+  });
+  map.innerHTML=html;
+}
+function jumpToPhase(pi){
+  var phase=document.querySelector('.phase[data-pi="'+pi+'"][data-norm="'+currentNorm+'"]');if(!phase)return;
+  var body=phase.querySelector('.phase-body'),hdr=phase.querySelector('.phase-hdr');
+  body.classList.add('open');hdr.classList.add('open');
+  setTimeout(function(){phase.scrollIntoView({behavior:'smooth',block:'start'});},80);haptic('light');
+}
+function jumpToFirstUnanswered(){
+  var phases=getPhases(currentNorm),prefix=currentNorm==='IATF16949'?'I':'S';
+  for(var pi=0;pi<phases.length;pi++){for(var qi=0;qi<phases[pi].items.length;qi++){if(!document.querySelector('input[name="'+prefix+pi+'-'+qi+'"]:checked')){gotoQuestion(pi,qi);haptic('light');return;}}}
+}
+function updateJumpBtn(){
+  var btn=el('jump-unanswered');if(!btn)return;
+  var phases=getPhases(currentNorm),prefix=currentNorm==='IATF16949'?'I':'S',missing=0;
+  phases.forEach(function(p,pi){p.items.forEach(function(_,qi){if(!document.querySelector('input[name="'+prefix+pi+'-'+qi+'"]:checked'))missing++;});});
+  if(missing>0){btn.classList.remove('hidden');var sp=el('jump-unanswered-text');if(sp)sp.textContent=t2('jumpBtn')+' ('+missing+')';}
+  else btn.classList.add('hidden');
+}
+function scrollToTopChecklist(){window.scrollTo({top:0,behavior:'smooth'});}
+
+/* NAV */
+function goTab(name,addHist){
+  if(addHist!==false&&currentTab&&currentTab!==name)navHistory.push(currentTab);
+  currentTab=name;
+  document.querySelectorAll('.tab').forEach(function(tb){tb.classList.remove('active');});
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+  var tab=document.querySelector('.tab[data-tab="'+name+'"]');if(tab)tab.classList.add('active');
+  var sec=el(name);if(sec)sec.classList.add('active');
+  el('search-sticky').classList.toggle('show',name==='archive');
+  el('fab-new').classList.toggle('show',name==='archive');
+  el('back-btn').classList.toggle('show',navHistory.length>0);
+  if(name==='checklist'){
+    buildChecklist(currentNorm);showChecklistForNorm(currentNorm);updateClBanner();buildMinimap(currentNorm);updateJumpBtn();reloadPhotoThumbs(currentNorm);
+    var fb=document.querySelector('.phase[data-pi="0"][data-norm="'+currentNorm+'"] .phase-body');var fh=document.querySelector('.phase[data-pi="0"][data-norm="'+currentNorm+'"] .phase-hdr');
+    if(fb&&!fb.classList.contains('open')){fb.classList.add('open');if(fh)fh.classList.add('open');}
+  }
+  if(name==='report'){updateReport();var rPh=el('report-photo-thumbs'),rBtn=el('report-photo-add-btn');if(rPh&&rBtn)renderPhotoThumbs('report',rPh,rBtn,3);}
+  if(name==='archive')renderArchive();
+  window.scrollTo(0,0);
+}
+function goBack(){if(navHistory.length>0){var p=navHistory.pop();goTab(p,false);}}
+document.querySelectorAll('.tab').forEach(function(tb){tb.addEventListener('click',function(){goTab(tb.dataset.tab);});});
+el('back-btn').addEventListener('click',goBack);
+var tsx=0,tsy=0;
+document.addEventListener('touchstart',function(e){tsx=e.changedTouches[0].screenX;tsy=e.changedTouches[0].screenY;},{passive:true});
+document.addEventListener('touchend',function(e){var tx=e.changedTouches[0].screenX,ty=e.changedTouches[0].screenY;if(tsx<30&&(tx-tsx)>60&&Math.abs(ty-tsy)<60&&navHistory.length>0){haptic('light');goBack();}},{passive:true});
+
+/* NORM/STATUS */
+function setNorm(norm){
+  currentNorm=norm;
+  el('nb-9001').className='norm-btn'+(norm==='ISO9001'?' sel-9001':'');
+  el('nb-iatf').className='norm-btn'+(norm==='IATF16949'?' sel-iatf':'');
+  el('hdr-sub').textContent=norm==='IATF16949'?'IATF 16949:2016 - Off/Highway':'ISO 9001:2015 - Off/Highway';
+  buildChecklist(norm);showChecklistForNorm(norm);updateClBanner();buildMinimap(norm);updateJumpBtn();schedSave();
+}
+function setStatus(s){
+  currentStatus=s;var map={'in-progress':'inp','closed':'clo','follow-up':'fol'};
+  ['inp','clo','fol'].forEach(function(k){var e=el('sb-'+k);if(e)e.className=e.className.replace(' active','');});
+  var eb=el('sb-'+map[s]);if(eb)eb.className+=' active';schedSave();
+}
+function updateClBanner(){
+  var phases=getPhases(currentNorm),tot=phases.reduce(function(s,p){return s+p.items.length;},0);
+  var prefix=currentNorm==='IATF16949'?'I':'S',done=0;
+  phases.forEach(function(p,pi){p.items.forEach(function(_,qi){if(document.querySelector('input[name="'+prefix+pi+'-'+qi+'"]:checked'))done++;});});
+  var pct=tot?Math.round(done/tot*100):0;
+  var banner=el('cl-banner'),text=el('cl-banner-text'),badge=el('cl-pct-badge');
+  if(currentNorm==='IATF16949'){banner.className='cl-banner iatf-banner';text.textContent='\uD83D\uDFE3 IATF 16949:2016';}
+  else{banner.className='cl-banner iso';text.textContent='\uD83D\uDD35 ISO 9001:2015';}
+  badge.textContent=done+' / '+tot+' - '+pct+'%';
+}
+
+/* FORM */
+function t2(k){var s=STRINGS[currentLang];return(s&&s[k]!==undefined)?s[k]:(STRINGS.it[k]||k);}
+function readFormData(){
+  var phases=getPhases(currentNorm),prefix=currentNorm==='IATF16949'?'I':'S';
+  var d={id:currentId||genId(),savedAt:new Date().toISOString(),norm:currentNorm,status:currentStatus,
+    header:{code:gv('h-code'),date:gv('h-date'),auditor:gv('h-auditor'),auditee:gv('h-auditee'),line:gv('h-line'),product:gv('h-product'),scope:gv('h-scope'),docs:gv('h-docs')},
+    answers:{},notes:{},photos:{},conclusion:gv('r-conclusion'),followup:gv('r-followup')};
+  phases.forEach(function(p,pi){p.items.forEach(function(_,qi){
+    var sel=document.querySelector('input[name="'+prefix+pi+'-'+qi+'"]:checked');if(sel)d.answers[pi+'-'+qi]=sel.value;
+    var nt=document.querySelector('textarea[data-norm="'+currentNorm+'"][data-q="'+pi+'-'+qi+'"]');if(nt&&nt.value.trim())d.notes[pi+'-'+qi]=nt.value;
+    var ph=getPhotos(currentNorm+'-'+pi+'-'+qi);if(ph.length)d.photos[pi+'-'+qi]=ph;
+  });});
+  var hPh=getPhotos('header');if(hPh.length)d.photos['_header']=hPh;
+  var rPh=getPhotos('report');if(rPh.length)d.photos['_report']=rPh;
+  return d;
+}
+function loadFormData(d){
+  if(!d)return;currentId=d.id;currentNorm=d.norm||'ISO9001';currentStatus=d.status||'in-progress';
+  buildChecklist(currentNorm);setNorm(currentNorm);setStatus(currentStatus);
+  sv('h-code',d.header&&d.header.code);sv('h-date',d.header&&d.header.date);
+  sv('h-auditor',d.header&&d.header.auditor);sv('h-auditee',d.header&&d.header.auditee);
+  sv('h-line',d.header&&d.header.line);sv('h-product',d.header&&d.header.product);
+  sv('h-scope',d.header&&d.header.scope);sv('h-docs',d.header&&d.header.docs);
+  sv('r-conclusion',d.conclusion);sv('r-followup',d.followup);
+  photoStore={};
+  var prefix=currentNorm==='IATF16949'?'I':'S',phases=getPhases(currentNorm);
+  phases.forEach(function(p,pi){p.items.forEach(function(_,qi){
+    document.querySelectorAll('input[name="'+prefix+pi+'-'+qi+'"]').forEach(function(r){r.checked=false;});
+    var nt=document.querySelector('textarea[data-norm="'+currentNorm+'"][data-q="'+pi+'-'+qi+'"]');if(nt)nt.value='';
+  });});
+  if(d.answers)Object.keys(d.answers).forEach(function(k){var r=document.querySelector('input[name="'+prefix+k+'"][value="'+d.answers[k]+'"]');if(r){r.checked=true;var q=r.closest('.question');if(q)q.classList.add('answered');}});
+  if(d.notes)Object.keys(d.notes).forEach(function(k){var tx=document.querySelector('textarea[data-norm="'+currentNorm+'"][data-q="'+k+'"]');if(tx)tx.value=d.notes[k];});
+  if(d.photos)Object.keys(d.photos).forEach(function(k){
+    if(k==='_header')photoStore['header']=d.photos[k];
+    else if(k==='_report')photoStore['report']=d.photos[k];
+    else photoStore[currentNorm+'-'+k]=d.photos[k];
+  });
+  var hPh=el('header-photo-thumbs'),hBtn=el('header-photo-add-btn');if(hPh&&hBtn)renderPhotoThumbs('header',hPh,hBtn,3);
+  updateBadge((d.header&&(d.header.code||d.header.line))||t2('noCurrent'));
+  updateClBanner();buildMinimap(currentNorm);updateJumpBtn();updateReport();
+  reloadPhotoThumbs(currentNorm);
+}
+
+/* AUTOSAVE */
+var saveTimer=null;
+function onAnswer(){updateClBanner();buildMinimap(currentNorm);updateJumpBtn();if(el('report').classList.contains('active'))updateReport();schedSave();}
+function schedSave(){clearTimeout(saveTimer);saveTimer=setTimeout(doAutoSave,500);}
+function doAutoSave(){if(!storageOK)return;var d=readFormData();currentId=d.id;if(lsSet(d.id,d))updateBadge((d.header.code||d.header.line)||t2('noCurrent'));}
+window.addEventListener('beforeunload',function(){if(storageOK&&currentId)doAutoSave();});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'&&storageOK&&currentId)doAutoSave();});
+function bindHeaderFields(){
+  ['h-code','h-date','h-auditor','h-auditee','h-line','h-product','h-scope','h-docs','r-conclusion','r-followup'].forEach(function(id){var e=el(id);if(e)e.addEventListener('input',schedSave);});
+  var si=el('search-input');if(si)si.addEventListener('input',renderArchive);
+}
+function bindTimeInputs(){var d=el('time-dawn'),k=el('time-dusk');if(d)d.addEventListener('change',saveTimeRange);if(k)k.addEventListener('change',saveTimeRange);}
+
+/* ARCHIVE */
+function saveCurrentToArchive(){
+  if(!storageOK){toast(t2('storageNA'),4000);return;}
+  var d=readFormData();currentId=d.id;
+  if(lsSet(d.id,d)){updateBadge((d.header.code||d.header.line)||t2('noCurrent'));toast('\u2705 '+t2('toastArchived')+' ('+countAudits()+')');haptic('light');refreshStorageInfo();renderArchive();}
+  else toast(t2('toastErr'),4000);
+}
+function newAudit(){
+  if(currentId&&storageOK)doAutoSave();
+  currentId=null;photoStore={};currentNorm=defaultNorm;currentStatus='in-progress';
+  setNorm(defaultNorm);setStatus('in-progress');
+  ['h-code','h-date','h-auditor','h-auditee','h-line','h-product','h-scope','h-docs','r-conclusion','r-followup'].forEach(function(id){sv(id,'');});
+  document.querySelectorAll('.rating input[type=radio]').forEach(function(r){r.checked=false;});
+  document.querySelectorAll('textarea.notes').forEach(function(tx){tx.value='';});
+  document.querySelectorAll('.question').forEach(function(q){q.classList.remove('answered','has-photo');});
+  document.querySelectorAll('.photo-thumbs').forEach(function(th){th.innerHTML='';});
+  var hBtn=el('header-photo-add-btn');if(hBtn)hBtn.classList.remove('disabled');
+  updateBadge(t2('noCurrent'));updateReport();updateClBanner();buildMinimap(defaultNorm);updateJumpBtn();goTab('header');toast(t2('toastNew'));
+}
+function calcStats(d){
+  var phases=getPhases(d.norm||'ISO9001'),c=0,m=0,g=0,na=0,tot=0;
+  phases.forEach(function(ph,pi){ph.items.forEach(function(_,qi){tot++;var v=(d.answers||{})[pi+'-'+qi];if(v==='C')c++;else if(v==='NC-M')m++;else if(v==='NC-G')g++;else if(v==='NA')na++;});});
+  var done=c+m+g+na;
+  var ph=d.photos||{},totPh=Object.keys(ph).reduce(function(s,k){return s+(ph[k]||[]).length;},0);
+  return{c:c,m:m,g:g,na:na,tot:tot,done:done,missing:tot-done,pct:tot?Math.round(done/tot*100):0,photos:totPh};
+}
+function escH(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+/* REPORT */
+function updateReport(){
+  var phases=getPhases(currentNorm),prefix=currentNorm==='IATF16949'?'I':'S',c=0,m=0,g=0,na=0,tot=0,ncList=[];
+  phases.forEach(function(phase,pi){phase.items.forEach(function(item,qi){
+    tot++;var sel=document.querySelector('input[name="'+prefix+pi+'-'+qi+'"]:checked');if(!sel)return;
+    var nt=document.querySelector('textarea[data-norm="'+currentNorm+'"][data-q="'+pi+'-'+qi+'"]'),note=nt?nt.value:'';
+    var photos=getPhotos(currentNorm+'-'+pi+'-'+qi);
+    if(sel.value==='C')c++;
+    else if(sel.value==='NC-M'){m++;ncList.push({type:'Minore',q:item.q,ref:item.ref,note:note,phase:phase.title,pi:pi,qi:qi,photos:photos});}
+    else if(sel.value==='NC-G'){g++;ncList.push({type:'Maggiore',q:item.q,ref:item.ref,note:note,phase:phase.title,pi:pi,qi:qi,photos:photos});}
+    else if(sel.value==='NA')na++;
+  });});
+  el('cnt-c').textContent=c;el('cnt-m').textContent=m;el('cnt-g').textContent=g;el('cnt-na').textContent=na;
+  var done=c+m+g+na,pct=tot?Math.round(done/tot*100):0;
+  el('prog-fill').style.width=pct+'%';el('pct-txt').textContent=done+' / '+tot+' ('+pct+'%)';
+  var missing=tot-done;el('todo-note').style.display=missing>0?'block':'none';if(missing>0)el('todo-count').textContent=missing;
+  var ncDiv=el('nc-list');
+  if(!ncList.length){ncDiv.innerHTML='<p style="color:var(--muted);font-size:13px">'+t2('noNc')+'</p>';}
+  else{ncDiv.innerHTML=ncList.map(function(nc,i){
+    var photoHTML='';
+    if(nc.photos&&nc.photos.length){photoHTML='<div class="nc-photos">'+nc.photos.map(function(src,pi){return '<img class="nc-photo-thumb" src="'+src+'" alt="Foto" onclick="openLightbox(this.src,\'NC foto\')">';}).join('')+'</div>';}
+    return '<div class="nc-item '+(nc.type==='Maggiore'?'maj':'min')+'">'+
+      '<div class="nc-type" style="color:'+(nc.type==='Maggiore'?'var(--red)':'var(--yellow)')+'">NC '+nc.type+' #'+(i+1)+' &mdash; '+escH(nc.phase)+'</div>'+
+      '<div class="nc-q">'+escH(nc.q)+'</div><div class="nc-ref">'+escH(nc.ref)+'</div>'+
+      (nc.note?'<div class="nc-note"><b>Evidenza:</b> '+escH(nc.note)+'</div>':'')+
+      photoHTML+
+      '<button class="nc-goto" onclick="gotoQuestion('+nc.pi+','+nc.qi+')">'+t2('gotoQ')+' &#x2192;</button></div>';
+  }).join('');}
+}
+function gotoQuestion(pi,qi){
+  goTab('checklist');
+  setTimeout(function(){
+    var phase=document.querySelector('.phase[data-pi="'+pi+'"][data-norm="'+currentNorm+'"]');if(!phase)return;
+    var body=phase.querySelector('.phase-body'),hdr=phase.querySelector('.phase-hdr');body.classList.add('open');hdr.classList.add('open');
+    var q=phase.querySelector('.question[data-qi="'+qi+'"]');
+    if(q){q.scrollIntoView({behavior:'smooth',block:'center'});q.style.background='var(--yellow-light)';setTimeout(function(){q.style.background='';},2000);}
+  },250);
+}
+function scrollToPhaseByEsito(esito){
+  var phases=getPhases(currentNorm),prefix=currentNorm==='IATF16949'?'I':'S';
+  for(var pi=0;pi<phases.length;pi++){for(var qi=0;qi<phases[pi].items.length;qi++){var sel=document.querySelector('input[name="'+prefix+pi+'-'+qi+'"]:checked');if(sel&&sel.value===esito){gotoQuestion(pi,qi);return;}}}
+  toast(t2('toastNoAnswer')+' '+esito);
+}
+
+/* ARCHIVE RENDER */
+function renderArchive(){
+  var list=el('archive-list'),audits=getAllAudits();
+  var q=(el('search-input').value||'').toLowerCase().trim();
+  var filtered=q?audits.filter(function(a){var h=a.header||{};return[h.code,h.line,h.product,h.auditor,h.auditee].some(function(x){return(x||'').toLowerCase().includes(q);});}):audits;
+  var kpiDiv=el('arch-kpi');
+  if(audits.length>0&&kpiDiv){
+    kpiDiv.style.display='';var totNc=0,totPct=0,totPh=0;
+    audits.forEach(function(a){var s=calcStats(a);totNc+=s.m+s.g;totPct+=s.pct;totPh+=s.photos;});
+    var kn=el('kpi-tot'),kc=el('kpi-nc'),kp=el('kpi-pct');
+    if(kn)kn.textContent=audits.length;if(kc)kc.textContent=totNc;if(kp)kp.textContent=Math.round(totPct/audits.length)+'%';
+  } else if(kpiDiv)kpiDiv.style.display='none';
+  if(!filtered.length){list.innerHTML='<div class="empty">&#x1F50D; '+(q?'Nessun risultato per "'+escH(q)+'"':t2('toastNone')+'.<br><br>Tocca <b>+</b> per iniziare.')+'</div>';return;}
+  var stLabel={'in-progress':t2('stInPLabel'),'closed':t2('stClosedLabel'),'follow-up':t2('stFollowLabel')};
+  list.innerHTML=filtered.map(function(a){
+    var h=a.header||{},s=calcStats(a),isCur=a.id===currentId,isIatf=a.norm==='IATF16949';
+    var dateStr=h.date?new Date(h.date+'T12:00').toLocaleDateString(currentLang==='en'?'en-GB':'it-IT',{day:'2-digit',month:'short',year:'numeric'}):'-';
+    var progColor=s.pct>=80?'var(--green)':s.pct>=50?'var(--yellow-border)':'var(--red)';
+    var photoPill=s.photos>0?'<span class="pill photo">&#x1F4F7; '+s.photos+'</span>':'';
+    return '<div class="arch-item'+(isCur?' cur':'')+'" data-id="'+a.id+'">'+
+      '<div class="ai-title '+(isIatf?'iatf-t':'iso')+'">'+(isIatf?'\uD83D\uDFE3':'\uD83D\uDD35')+' '+escH(h.code||t2('noCode'))+(isCur?' <span style="font-size:10px;background:var(--green);color:#fff;padding:2px 8px;border-radius:8px;font-weight:700;margin-left:4px">LIVE</span>':'')+'</div>'+
+      '<div class="ai-sub">'+escH(h.line||'-')+' &mdash; '+escH(h.product||'-')+' &mdash; '+escH(h.auditor||'-')+'</div>'+
+      '<div class="ai-meta">'+escH(dateStr)+' &bull; '+(stLabel[a.status]||'-')+'</div>'+
+      '<div class="ai-prog"><div style="height:4px;width:'+s.pct+'%;background:'+progColor+';border-radius:2px"></div></div>'+
+      '<div class="ai-pills"><span class="pill norm">'+(isIatf?'IATF':'ISO')+'</span><span class="pill c">C '+s.c+'</span><span class="pill m">M '+s.m+'</span><span class="pill g">G '+s.g+'</span><span class="pill na">NA '+s.na+'</span><span class="pill pct">'+s.pct+'%</span>'+(s.missing>0?'<span class="pill todo">'+s.missing+' ?</span>':'')+photoPill+'</div>'+
+      '<div class="ai-acts"><button class="bx bx-open" data-act="open" data-id="'+a.id+'">Apri</button><button class="bx bx-pdf" data-act="pdf" data-id="'+a.id+'">PDF</button><button class="bx bx-txt" data-act="txt" data-id="'+a.id+'">TXT</button><button class="bx bx-csv" data-act="csv" data-id="'+a.id+'">CSV</button><button class="bx bx-json" data-act="json" data-id="'+a.id+'">JSON</button><button class="bx bx-del" data-act="del" data-id="'+a.id+'">&#x1F5D1;</button></div>'+
+    '</div>';
+  }).join('');
+  list.querySelectorAll('button[data-act]').forEach(function(btn){
+    btn.addEventListener('click',function(ev){ev.stopPropagation();var id=btn.dataset.id,act=btn.dataset.act;
+      if(act==='open')openAudit(id);else if(act==='pdf')printAuditFromArchive(id);else if(act==='txt')exportAuditTXT(id);else if(act==='csv')exportAuditCSV(id);else if(act==='json')exportAuditJSON(id);else if(act==='del')deleteAudit(id);});
+  });
+}
+function openAudit(id){
+  if(currentId&&currentId!==id&&storageOK)doAutoSave();var d=lsGet(id);if(!d){toast(t2('toastNotFound'));return;}
+  loadFormData(d);toast(t2('toastOpen'));haptic('light');goTab('checklist');
+}
+function deleteAudit(id){
+  var d=lsGet(id),label=(d&&d.header&&d.header.code)||id;
+  if(!confirm(t2('confirmDel')+' "'+label+'"?\n'+t2('confirmDelMsg')))return;
+  lsDel(id);if(currentId===id){currentId=null;photoStore={};updateBadge(t2('noCurrent'));}
+  refreshStorageInfo();renderArchive();toast(t2('toastDel'));
+}
+function resetCurrent(){
+  if(!confirm(t2('confirmReset')))return;
+  currentId=null;photoStore={};setStatus('in-progress');setNorm(defaultNorm);
+  ['h-code','h-date','h-auditor','h-auditee','h-line','h-product','h-scope','h-docs','r-conclusion','r-followup'].forEach(function(id){sv(id,'');});
+  document.querySelectorAll('.rating input[type=radio]').forEach(function(r){r.checked=false;});
+  document.querySelectorAll('textarea.notes').forEach(function(tx){tx.value='';});
+  document.querySelectorAll('.question').forEach(function(q){q.classList.remove('answered','has-photo');});
+  document.querySelectorAll('.photo-thumbs').forEach(function(th){th.innerHTML='';});
+  updateBadge(t2('noCurrent'));updateReport();updateClBanner();buildMinimap(defaultNorm);updateJumpBtn();toast(t2('toastFormReset'));
+}
+
+/* EXPORT/IMPORT */
+function buildTXT(d){
+  var h=d.header||{},s=calcStats(d),phases=getPhases(d.norm||'ISO9001'),sep='='.repeat(56),sep2='-'.repeat(56);
+  var txt=t2('reportPrint')+'\n'+sep+'\nNorma: '+(d.norm==='IATF16949'?'IATF 16949:2016':'ISO 9001:2015')+'\nCodice: '+(h.code||'-')+'\nData: '+(h.date||'-')+'\nAuditor: '+(h.auditor||'-')+'\nAuditato: '+(h.auditee||'-')+'\nLinea: '+(h.line||'-')+'\nProdotto: '+(h.product||'-')+'\nStato: '+(d.status||'-')+'\nFoto totali: '+s.photos+'\n\nRIEPILOGO\nConformi: '+s.c+' | NC Min: '+s.m+' | NC Mag: '+s.g+' | NA: '+s.na+'\nCompletamento: '+s.pct+'% ('+s.done+'/'+s.tot+')\n';
+  phases.forEach(function(phase,pi){txt+='\n'+phase.title+'\n'+sep2+'\n';phase.items.forEach(function(item,qi){var val=(d.answers||{})[pi+'-'+qi]||'-',note=(d.notes||{})[pi+'-'+qi]||'',ph=((d.photos||{})[pi+'-'+qi]||[]).length;txt+=(qi+1)+'. '+item.q+'\n   ['+val+']'+(note?' Note: '+note:'')+(ph?' ['+ph+' foto allegata/e]':'')+'\n   Rif: '+item.ref+'\n\n';});});
+  txt+='\n'+sep+'\nCONCLUSIONI\n'+(d.conclusion||'-')+'\nFollow-up: '+(d.followup||'-')+'\n';return txt;
+}
+function buildCSV(d){
+  var h=d.header||{},phases=getPhases(d.norm||'ISO9001'),s=calcStats(d),esc=function(v){return'"'+String(v==null?'':v).replace(/"/g,'""')+'"';};
+  var rows=[['Codice','Data','Auditor','Auditato','Linea','Prodotto','Norma','Stato','Pct','NC_Mag','NC_Min','Conformi','NA','Foto_tot','Fase','N','Domanda','Rif','Esito','Note','Foto_n'].map(esc).join(',')];
+  phases.forEach(function(phase,pi){phase.items.forEach(function(item,qi){var ph=((d.photos||{})[pi+'-'+qi]||[]).length;rows.push([h.code,h.date,h.auditor,h.auditee,h.line,h.product,d.norm||'',d.status||'',s.pct,s.g,s.m,s.c,s.na,s.photos,phase.title,qi+1,item.q,item.ref,(d.answers||{})[pi+'-'+qi]||'',(d.notes||{})[pi+'-'+qi]||'',ph].map(esc).join(','));});});
+  return rows.join('\n');
+}
+function dl(content,name,type){try{var blob=new Blob(['\uFEFF'+content],{type:type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);return true;}catch(e){toast(t2('toastDownErr'),4000);return false;}}
+function safeName(s){return String(s||'audit').replace(/[^a-zA-Z0-9._-]/g,'_').slice(0,60);}
+function doExportTXT(){var d=readFormData();dl(buildTXT(d),'audit-'+safeName(d.header.code)+'.txt','text/plain;charset=utf-8');toast(t2('toastTxt'));closeModal('modal-export');}
+function doExportCSV(){var d=readFormData();dl(buildCSV(d),'audit-'+safeName(d.header.code)+'.csv','text/csv;charset=utf-8');toast(t2('toastCsv'));closeModal('modal-export');}
+function doExportJSON(){var d=readFormData();dl(JSON.stringify(d,null,2),'audit-'+safeName(d.header.code)+'.json','application/json');toast(t2('toastJson'));closeModal('modal-export');}
+function doExportAllJSON(){var audits=getAllAudits();if(!audits.length){toast(t2('toastNone'));return;}var backup={type:'audit-tool-backup',version:6,exportedAt:new Date().toISOString(),count:audits.length,audits:audits};dl(JSON.stringify(backup,null,2),'audit-backup-'+new Date().toISOString().slice(0,10)+'.json','application/json');toast(t2('toastBackup')+' '+audits.length+' '+t2('audit'));closeModal('modal-export');}
+function doExportAllCSV(){
+  var audits=getAllAudits();if(!audits.length){toast(t2('toastNone'));return;}
+  var esc=function(v){return'"'+String(v==null?'':v).replace(/"/g,'""')+'"';};
+  var rows=[['Codice','Data','Auditor','Auditato','Linea','Prodotto','Norma','Stato','Pct','NC_Mag','NC_Min','Conformi','NA','Foto_tot','Fase','N','Domanda','Rif','Esito','Note','Foto_n'].map(esc).join(',')];
+  audits.forEach(function(data){var h=data.header||{},s=calcStats(data),phases=getPhases(data.norm||'ISO9001');phases.forEach(function(phase,pi){phase.items.forEach(function(item,qi){var ph=((data.photos||{})[pi+'-'+qi]||[]).length;rows.push([h.code,h.date,h.auditor,h.auditee,h.line,h.product,data.norm||'',data.status||'',s.pct,s.g,s.m,s.c,s.na,s.photos,phase.title,qi+1,item.q,item.ref,(data.answers||{})[pi+'-'+qi]||'',(data.notes||{})[pi+'-'+qi]||'',ph].map(esc).join(','));});});});
+  dl(rows.join('\n'),'audit-storico-'+new Date().toISOString().slice(0,10)+'.csv','text/csv;charset=utf-8');toast(t2('toastHistory')+' '+audits.length+' '+t2('audit'));closeModal('modal-export');
+}
+function exportAuditTXT(id){var d=lsGet(id);if(d){dl(buildTXT(d),'audit-'+safeName((d.header&&d.header.code)||id)+'.txt','text/plain;charset=utf-8');toast(t2('toastTxt'));}}
+function exportAuditCSV(id){var d=lsGet(id);if(d){dl(buildCSV(d),'audit-'+safeName((d.header&&d.header.code)||id)+'.csv','text/csv;charset=utf-8');toast(t2('toastCsv'));}}
+function exportAuditJSON(id){var d=lsGet(id);if(d){dl(JSON.stringify(d,null,2),'audit-'+safeName((d.header&&d.header.code)||id)+'.json','application/json');toast(t2('toastJson'));}}
+function openImportFromExport(){closeModal('modal-export');setTimeout(function(){el('modal-import').classList.add('open');},250);}
+function doImport(){
+  var inp=el('import-file'),file=inp.files[0];if(!file){toast(t2('toastBadFile'));return;}
+  var reader=new FileReader();
+  reader.onload=function(ev){try{var parsed=JSON.parse(ev.target.result),imported=0;
+    if(parsed&&parsed.type==='audit-tool-backup'&&Array.isArray(parsed.audits))parsed.audits.forEach(function(a){if(a&&a.id){lsSet(a.id,a);imported++;}});
+    else if(parsed&&parsed.id){lsSet(parsed.id,parsed);imported=1;}
+    else if(Array.isArray(parsed)){parsed.forEach(function(a){if(a&&a.id){lsSet(a.id,a);imported++;}});}
+    else{parsed.id=genId();lsSet(parsed.id,parsed);imported=1;}
+    closeModal('modal-import');inp.value='';refreshStorageInfo();toast(imported+' '+t2('toastImported'));haptic('light');renderArchive();
+  }catch(e){toast(t2('toastBadFile'),4000);}};
+  reader.readAsText(file);
+}
+
+/* PRINT / PDF */
+function buildPrintHTML(d){
+  var h=d.header||{},s=calcStats(d),phases=getPhases(d.norm||'ISO9001');
+  var normLabel=d.norm==='IATF16949'?'IATF 16949:2016':'ISO 9001:2015';
+  var stL={'in-progress':'In corso','closed':'Chiuso','follow-up':'Follow-up'};
+  var hPh=(d.photos||{})['_header']||[],rPh=(d.photos||{})['_report']||[];
+  var hPhHTML=hPh.length?'<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">'+hPh.map(function(src){return '<img src="'+src+'" style="width:90px;height:90px;object-fit:cover;border-radius:6px;border:1px solid #ccc">';}).join('')+'</div>':'';
+  var html='<h1>'+t2('printTitle')+' &mdash; '+normLabel+'</h1>'+
+    '<div class="print-meta"><b>Codice:</b> '+escH(h.code||'-')+' | <b>Data:</b> '+escH(h.date||'-')+' | <b>Auditor:</b> '+escH(h.auditor||'-')+'<br>'+
+    '<b>Linea:</b> '+escH(h.line||'-')+' | <b>Prodotto:</b> '+escH(h.product||'-')+' | <b>Auditato:</b> '+escH(h.auditee||'-')+'<br>'+
+    '<b>Stato:</b> '+(stL[d.status]||'-')+' | <b>Completamento:</b> '+s.pct+'% | <b>Foto allegate:</b> '+s.photos+
+    hPhHTML+'</div>';
+  if(h.scope)html+='<div class="card"><h2>Scopo</h2><p>'+escH(h.scope)+'</p></div>';
+  html+='<div class="card"><h2>Riepilogo</h2><div class="stat-grid">'+
+    '<div class="stat c"><span class="n">'+s.c+'</span><span class="l">Conformi</span></div>'+
+    '<div class="stat m"><span class="n">'+s.m+'</span><span class="l">NC Min</span></div>'+
+    '<div class="stat g"><span class="n">'+s.g+'</span><span class="l">NC Mag</span></div>'+
+    '<div class="stat na"><span class="n">'+s.na+'</span><span class="l">N/A</span></div></div></div>';
+  phases.forEach(function(phase,pi){
+    html+='<div class="phase"><div class="phase-hdr">'+escH(phase.title)+'</div><div class="phase-body">';
+    phase.items.forEach(function(item,qi){
+      var val=(d.answers||{})[pi+'-'+qi]||'-',note=(d.notes||{})[pi+'-'+qi]||'',photos=(d.photos||{})[pi+'-'+qi]||[];
+      var vl={'C':'Conforme','NC-M':'NC Minore','NC-G':'NC Maggiore','NA':'N/A','-':'Non valutato'}[val]||val;
+      var photoHTML=photos.length?'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">'+photos.map(function(src){return '<img src="'+src+'" style="width:80px;height:80px;object-fit:cover;border-radius:5px;border:1px solid #ddd">';}).join('')+'</div>':'';
+      html+='<div class="question"><div class="q-text">'+(qi+1)+'. '+escH(item.q)+'</div>'+
+        '<div class="q-ref">'+escH(item.ref)+'</div>'+
+        '<div style="font-size:12px;margin:4px 0"><b>Esito:</b> '+vl+'</div>'+
+        (note?'<div style="font-size:12px;background:#f9fafb;border:1px solid #e5e7eb;padding:5px 8px;border-radius:4px;margin-top:4px"><b>Evidenza:</b> '+escH(note)+'</div>':'')+
+        photoHTML+'</div>';
+    });
+    html+='</div></div>';
+  });
+  var ncAll=[];phases.forEach(function(phase,pi){phase.items.forEach(function(item,qi){var v=(d.answers||{})[pi+'-'+qi],n=(d.notes||{})[pi+'-'+qi]||'',ph=(d.photos||{})[pi+'-'+qi]||[];if(v==='NC-G'||v==='NC-M')ncAll.push({type:v==='NC-G'?'Maggiore':'Minore',q:item.q,ref:item.ref,n:n,phase:phase.title,photos:ph});});});
+  if(ncAll.length){html+='<div class="card"><h2>Non conformita rilevate</h2>';ncAll.forEach(function(nc,i){var phH=nc.photos.length?'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">'+nc.photos.map(function(src){return '<img src="'+src+'" style="width:80px;height:80px;object-fit:cover;border-radius:5px;border:1px solid #ddd">';}).join('')+'</div>':'';html+='<div class="nc-item '+(nc.type==='Maggiore'?'maj':'min')+'"><div class="nc-type" style="color:'+(nc.type==='Maggiore'?'#b91c1c':'#92400e')+'">NC '+nc.type+' #'+(i+1)+' - '+escH(nc.phase)+'</div><div class="nc-q">'+escH(nc.q)+'</div><div class="nc-ref">'+escH(nc.ref)+'</div>'+(nc.n?'<div class="nc-note"><b>Evidenza:</b> '+escH(nc.n)+'</div>':'')+phH+'</div>';});html+='</div>';}
+  if(d.conclusion||d.followup||rPh.length){html+='<div class="card"><h2>Conclusioni</h2>';if(d.conclusion)html+='<p>'+escH(d.conclusion).replace(/\n/g,'<br>')+'</p>';if(d.followup)html+='<p style="margin-top:8px"><b>Follow-up:</b> '+escH(d.followup)+'</p>';if(rPh.length)html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">'+rPh.map(function(src){return '<img src="'+src+'" style="width:90px;height:90px;object-fit:cover;border-radius:6px;border:1px solid #ccc">';}).join('')+'</div>';html+='</div>';}
+  html+='<div class="card"><h2>Firme</h2><table style="width:100%;border-collapse:collapse;font-size:12px"><tr><td style="border:1px solid #ccc;padding:30px 10px 10px;width:50%"><b>Auditor</b><br>'+escH(h.auditor||'')+'</td><td style="border:1px solid #ccc;padding:30px 10px 10px"><b>Auditato</b><br>'+escH(h.auditee||'')+'</td></tr></table></div>';
+  return html;
+}
+function buildFullPage(d){
+  var content=buildPrintHTML(d);
+  var css='*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;font-size:12px;color:#000;padding:16px;background:#fff;line-height:1.5}h1{font-size:17px;color:#1a56a0;margin-bottom:5px}.print-meta{font-size:11px;color:#444;margin-bottom:14px;border-bottom:2px solid #1a56a0;padding-bottom:7px}.card{border:1px solid #ccc;border-radius:6px;padding:11px;margin-bottom:9px;page-break-inside:avoid}.card h2{font-size:12px;color:#1a56a0;border-left:3px solid #1a56a0;padding-left:7px;margin-bottom:7px;font-weight:700}.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:7px}.stat{padding:7px 4px;border-radius:5px;text-align:center;border:1px solid #ccc}.stat .n{font-size:20px;font-weight:800;display:block}.stat .l{font-size:9px;text-transform:uppercase;display:block}.stat.c{background:#dcfce7;color:#15803d}.stat.m{background:#fef9c3;color:#92400e}.stat.g{background:#fee2e2;color:#b91c1c}.stat.na{background:#f1f5f9;color:#475569}.phase{border:1px solid #ccc;border-radius:5px;margin-bottom:7px;overflow:hidden;page-break-inside:avoid}.phase-hdr{background:#e5e7eb;padding:7px 11px;font-weight:700;font-size:11.5px}.phase-body{display:block}.question{padding:7px 11px;border-bottom:1px solid #f0f0f0}.q-text{font-size:11.5px;font-weight:600;margin-bottom:1px}.q-ref{font-size:10px;color:#888;font-style:italic}.nc-item{border-radius:5px;padding:7px 9px;margin-bottom:5px}.nc-item.maj{background:#fff1f2;border-left:3px solid #dc2626}.nc-item.min{background:#fefce8;border-left:3px solid #ca8a04}.nc-type{font-size:10.5px;font-weight:700;margin-bottom:2px}.nc-q{font-size:11.5px}.nc-ref{font-size:10px;color:#888}.nc-note{font-size:11px;margin-top:3px;background:rgba(0,0,0,.04);padding:4px 6px;border-radius:3px}table{width:100%;border-collapse:collapse}td{border:1px solid #ccc;padding:7px}.topbar{background:#1a56a0;color:#fff;padding:12px 16px;border-radius:10px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.topbar-btns{display:flex;gap:8px}.topbar button{border:none;padding:10px 18px;border-radius:7px;font-size:14px;font-weight:700;cursor:pointer;min-height:40px}.btn-back{background:rgba(255,255,255,.25);color:#fff}.btn-print{background:#fff;color:#1a56a0}@media print{.topbar{display:none!important}body{padding:8px}}';
+  return '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+t2('printTitle')+'</title><style>'+css+'</style></head><body><div class="topbar"><span style="font-size:13px;font-weight:600;flex:1">'+t2('printReady')+'</span><div class="topbar-btns"><button class="btn-back" onclick="window.close()">'+t2('printBack')+'</button><button class="btn-print" onclick="window.print()">&#x1F4C4; Stampa / PDF</button></div></div>'+content+'</body></html>';
+}
+function printAudit(){printDataObject(readFormData());}
+function printAuditFromArchive(id){var d=lsGet(id);if(d)printDataObject(d);else toast(t2('toastNotFound'));}
+function printDataObject(d){
+  var page=buildFullPage(d);
+  try{var win=window.open('','_blank');if(win&&win.document){win.document.open();win.document.write(page);win.document.close();if(!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)){win.focus();setTimeout(function(){try{win.print();}catch(e){}},700);}return;}}catch(e){}
+  dl(page,'report-audit-'+safeName((d.header&&d.header.code)||'report')+'.html','text/html;charset=utf-8');
+}
+
+/* MODALS/SETTINGS */
+function openExportModal(){el('modal-export').classList.add('open');}
+function closeModal(id){el(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
+function openSettings(){
+  var d=el('time-dawn'),k=el('time-dusk');if(d)d.value=timeDawn;if(k)k.value=timeDusk;
+  updateThemeUI();updateDefaultNormBtns();updateLangBtns();el('modal-settings').classList.add('open');
+}
+function updateBadge(label){el('current-badge').textContent=label||t2('noCurrent');}
+function refreshStorageInfo(){
+  var e=el('storage-info');if(!e)return;
+  if(!storageOK){e.className='storage-info err';e.innerHTML='<b>'+t2('storageNA')+'</b> - '+t2('storageHint');return;}
+  var n=countAudits(),kb=Math.round(getStorageUsage()/1024);
+  var pct=Math.min(100,Math.round(kb/4096*100));
+  var warn=pct>=80;
+  e.className='storage-info'+(warn?' err':'');
+  e.innerHTML='<b>'+t2('storageActive')+'</b> &mdash; '+n+' '+t2('audit')+' ('+kb+' '+t2('kb')+')'+
+    (warn?' &mdash; <b>&#x26A0; Spazio quasi esaurito ('+pct+'%). Esporta un backup JSON.</b>':'');
+}
+function registerSW(){
+  if(!('serviceWorker' in navigator))return;
+  navigator.serviceWorker.register('./sw.js').then(function(reg){
+    reg.addEventListener('updatefound',function(){
+      var nw=reg.installing;
+      nw.addEventListener('statechange',function(){
+        if(nw.state==='installed'&&navigator.serviceWorker.controller){
+          toast('&#x1F504; Aggiornamento disponibile. Ricarica l\'app.',5000);
+        }
+      });
+    });
+  }).catch(function(){});
+}
+function toast(msg,duration){var tv=el('_toast');tv.textContent=msg;tv.style.opacity='1';clearTimeout(tv._t);tv._t=setTimeout(function(){tv.style.opacity='0';},duration||2800);}
+
+/* INIT */
+function init(){
+  try{
+    var sl=localStorage.getItem('audit_v6:lang');if(sl==='en'||sl==='it')currentLang=sl;
+    var st=localStorage.getItem('audit_v6:theme');if(st==='dark'||st==='light'||st==='auto')currentTheme=st;
+    var sd=localStorage.getItem('audit_v6:dawn');if(sd)timeDawn=sd;
+    var sk=localStorage.getItem('audit_v6:dusk');if(sk)timeDusk=sk;
+    var sn=localStorage.getItem('audit_v6:defNorm');if(sn==='ISO9001'||sn==='IATF16949')defaultNorm=sn;
+  }catch(e){}
+  setupPWA();applyTheme();startThemeTimer();applyI18n();registerSW();
+  storageOK=storageTest();refreshStorageInfo();buildChecklist('ISO9001');bindHeaderFields();bindTimeInputs();updateClBanner();
+  if(storageOK){var audits=getAllAudits();var last=audits.find(function(a){return a.status==='in-progress';})||audits[0];if(last){buildChecklist(last.norm||'ISO9001');loadFormData(last);}}
+  el('search-sticky').classList.add('show');el('fab-new').classList.add('show');
+  var hPh=el('header-photo-thumbs'),hBtn=el('header-photo-add-btn');
+  if(hPh&&hBtn)renderPhotoThumbs('header',hPh,hBtn,3);
+  renderArchive();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+</script>
+</body>
+</html>
